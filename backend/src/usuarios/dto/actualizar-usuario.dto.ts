@@ -9,6 +9,7 @@ import {
 /**
  * DTO para la actualización parcial de un usuario.
  * Todos los campos son opcionales, solo se actualizan los que se envíen.
+ * 
  */
 export class ActualizarUsuarioDto {
   /** Nuevo ID de cliente asociado. Opcional */
