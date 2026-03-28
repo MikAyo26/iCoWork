@@ -7,15 +7,22 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CrearUsuarioDto } from './dto/crear-usuario.dto';
 import { ActualizarUsuarioDto } from './dto/actualizar-usuario.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decoradores/roles.decorator';
 
 /**
  * Controlador REST para el recurso usuarios.
  * Expone los endpoints bajo el prefijo global /api/usuarios.
+ * Todos los endpoints requieren autenticación JWT y rol superadmin.
  */
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('superadmin')
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}

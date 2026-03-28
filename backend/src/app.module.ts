@@ -3,6 +3,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ClientesModule } from './clientes/clientes.module';
+import { AuthModule } from './auth/auth.module';
+import { OficinasModule } from './oficinas/oficinas.module';
+import { EspaciosModule } from './espacios/espacios.module';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { ListaEsperaModule } from './lista-espera/lista-espera.module';
+import { ReservasModule } from './reservas/reservas.module';
+import { EventsModule } from './events/events.module';
+import { CorreoModule } from './correo/correo.module';
+import { PlanesModule } from './planes/planes.module';
+import { SuscripcionesModule } from './suscripciones/suscripciones.module';
+import { PagosModule } from './pagos/pagos.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -21,8 +33,20 @@ import { ClientesModule } from './clientes/clientes.module';
         synchronize: false,
       }),
     }),
+    AuthModule,
+    EventsModule,
     UsuariosModule,
     ClientesModule,
+    OficinasModule,
+    EspaciosModule,
+    NotificacionesModule,
+    ListaEsperaModule,
+    ReservasModule,
+    CorreoModule,
+    PlanesModule,
+    SuscripcionesModule,
+    PagosModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}
