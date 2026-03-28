@@ -3,7 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Cliente } from '../../clientes/entidades/cliente.entidad';
 
 /** Tipo union para los roles disponibles en el sistema */
 export type Rol = 'superadmin' | 'admin' | 'empleado';
@@ -21,6 +24,11 @@ export class Usuario {
   /** FK hacia la tabla `clientes`. NULL si el usuario es superadmin interno */
   @Column({ name: 'cliente_id', type: 'int', unsigned: true, nullable: true })
   clienteId: number | null;
+
+  /** Relación con la entidad Cliente */
+  @ManyToOne(() => Cliente, (cliente) => cliente.usuarios, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'cliente_id' })
+  cliente: Cliente;
 
   /** Nombre completo del usuario */
   @Column({ type: 'varchar', length: 100 })
