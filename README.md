@@ -1,147 +1,203 @@
-iCoWork (iCW)
+# iCoWork (iCW)
+
 Aplicación web para la gestión de espacios de coworking. Permite a empresas y autónomos reservar puestos de trabajo, salas de juntas y otros espacios, con disponibilidad en tiempo real, lista de espera, notificaciones automáticas y gestión de pagos.
 
-Tecnologías utilizadas
-Backend
-TecnologíaVersiónUsoNode.js20+Entorno de ejecuciónNestJS11Framework principalTypeORM0.3+ORM para base de datosMySQL8Base de datos relacionalJWT—Autenticación statelessPassport—Estrategias de autenticaciónbcrypt—Hash de contraseñasSocket.io—Comunicación en tiempo realclass-validator—Validación de DTOs
-Frontend
-TecnologíaUsoVue.jsFramework principalViteBundler y servidor de desarrolloTypeScriptTipado estáticoAxiosComunicación con la API
-Infraestructura
-ServicioUsoRailwayHosting backend, frontend y base de datosGitHubControl de versiones
+---
 
-Estructura del proyecto
+## Tecnologías utilizadas
+
+### Backend
+
+| Tecnología | Versión | Uso |
+|---|---|---|
+| Node.js | 20+ | Entorno de ejecución |
+| NestJS | 11 | Framework principal |
+| TypeORM | 0.3+ | ORM para base de datos |
+| MySQL | 8 | Base de datos relacional |
+| JWT | — | Autenticación stateless |
+| Passport | — | Estrategias de autenticación |
+| bcrypt | — | Hash de contraseñas |
+| Socket.io | — | Comunicación en tiempo real |
+| class-validator | — | Validación de DTOs |
+
+### Frontend  <-- ¡EN DESARROLLO!
+
+| Tecnología | Uso |
+|---|---|
+| Vue.js | Framework principal |
+| Vite | Bundler y servidor de desarrollo |
+| TypeScript | Tipado estático |
+| Axios | Comunicación con la API |
+
+### Infraestructura
+
+| Servicio | Uso |
+|---|---|
+| Railway | Hosting backend, frontend y base de datos |
+| GitHub | Control de versiones |
+
+---
+
+## Estructura del proyecto
+```
 iCoWork/
 ├── database/
-│   ├── icowork_schema.sql        ← Estructura de las 10 tablas
-│   └── icowork_datos.sql         ← Datos de prueba
-│
+│   ├── icowork_schema.sql
+│   └── icowork_datos.sql
 ├── backend/
 │   ├── src/
+│   │   ├── auth/
 │   │   ├── clientes/
-│   │   │   ├── dto/
-│   │   │   │   ├── crear-cliente.dto.ts
-│   │   │   │   └── actualizar-cliente.dto.ts
-│   │   │   ├── entidades/
-│   │   │   │   └── cliente.entidad.ts
-│   │   │   ├── clientes.controller.ts
-│   │   │   ├── clientes.service.ts
-│   │   │   └── clientes.module.ts
+│   │   ├── correo/
+│   │   ├── dashboard/
+│   │   ├── espacios/
+│   │   ├── events/
+│   │   ├── lista-espera/
+│   │   ├── notificaciones/
+│   │   ├── oficinas/
+│   │   ├── pagos/
+│   │   ├── planes/
+│   │   ├── reservas/
+│   │   ├── suscripciones/
 │   │   ├── usuarios/
-│   │   │   ├── dto/
-│   │   │   │   ├── crear-usuario.dto.ts
-│   │   │   │   └── actualizar-usuario.dto.ts
-│   │   │   ├── entidades/
-│   │   │   │   └── usuario.entidad.ts
-│   │   │   ├── usuarios.controller.ts
-│   │   │   ├── usuarios.service.ts
-│   │   │   └── usuarios.module.ts
 │   │   ├── app.module.ts
-│   │   ├── app.controller.ts
-│   │   ├── app.service.ts
 │   │   └── main.ts
-│   ├── test/
 │   ├── .env.example
-│   ├── .gitignore
 │   ├── nest-cli.json
 │   ├── package.json
-│   ├── tsconfig.json
-│   └── tsconfig.build.json
-│
+│   └── tsconfig.json
 ├── frontend/
 │   ├── src/
 │   ├── public/
-│   ├── .gitignore
-│   ├── env.d.ts
 │   ├── index.html
 │   ├── package.json
-│   ├── tsconfig.json
 │   └── vite.config.ts
-│
-├── .gitattributes
 ├── .gitignore
 └── README.md
+```
 
-Requisitos previos
-Antes de instalar el proyecto asegúrate de tener instalado:
+---
 
-Node.js v20 o superior
-npm v10 o superior
-MySQL v8 o superior
-MySQL Workbench (recomendado para gestionar la BD)
-Git
+## Requisitos previos
 
+- [Node.js](https://nodejs.org/) v20 o superior
+- [npm](https://www.npmjs.com/) v10 o superior
+- [MySQL](https://www.mysql.com/) v8 o superior
+- [MySQL Workbench](https://www.mysql.com/products/workbench/)
+- [Git](https://git-scm.com/)
 
-Instalación local
-1. Clonar el repositorio
-bashgit clone https://github.com/MikAyo/iCoWork.git
-cd icowork
-2. Configurar la base de datos
+---
+
+## Instalación local
+
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/MikAyo/iCoWork.git
+cd iCoWork
+```
+
+### 2. Configurar la base de datos
+
 Abre MySQL Workbench y ejecuta los scripts en este orden:
-1. database/icowork_schema.sql   ← crea la base de datos y las tablas
-2. database/icowork_datos.sql    ← inserta los datos de prueba
-O desde la terminal:
-bashmysql -u root -p < database/icowork_schema.sql
-mysql -u root -p < database/icowork_datos.sql
-3. Configurar el Backend
-bashcd backend
+```
+1. database/icowork_schema.sql
+2. database/icowork_datos.sql
+```
+
+### 3. Configurar el Backend
+```bash
+cd backend
 npm install --legacy-peer-deps
-Crea el archivo .env a partir del ejemplo:
-bashcp .env.example .env
-Edita .env con tus valores (ver sección de variables de entorno).
-Arranca el servidor en modo desarrollo:
-bashnpm run start:dev
-El backend estará disponible en http://localhost:3000/api
-4. Configurar el Frontend
-bashcd ../frontend
+cp .env.example .env
+```
+
+Edita el archivo `.env` con tus valores y arranca el servidor:
+```bash
+npm run start:dev
+```
+
+El backend estará disponible en `http://localhost:3000/api`
+
+### 4. Configurar el Frontend
+```bash
+cd ../frontend
 npm install
 npm run dev
-El frontend estará disponible en http://localhost:5173 <- EN DESARROLLO!
+```
 
-Variables de entorno
-El archivo .env debe crearse en la carpeta backend/ a partir de .env.example. Nunca subas el .env real al repositorio.
-env# Base de datos
+El frontend estará disponible en `http://localhost:5173`
+
+---
+
+## Variables de entorno
+
+Crea el archivo `.env` en la carpeta `backend/` a partir de `.env.example`. Nunca subas el `.env` real al repositorio.
+```env
+# Base de datos
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=tu usuario
-DB_PASSWORD=tu password
+DB_USER=root
+DB_PASSWORD=tu_password_de_mysql
 DB_NAME=icowork
 
-# JWT — genera un secreto seguro con el siguiente comando:
-# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# JWT
+# Genera el secreto con: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 JWT_SECRETO=tu_secreto_generado
 JWT_EXPIRA_EN=8h
 
 # App
 PUERTO=3000
+```
 
-Endpoints disponibles
-Clientes — /api/clientes
-MétodoRutaDescripciónGET/api/clientesListar todos los clientesGET/api/clientes/:idObtener un cliente por IDPOST/api/clientesCrear un nuevo clientePATCH/api/clientes/:idActualizar un clienteDELETE/api/clientes/:idEliminar un cliente
-Usuarios — /api/usuarios
-MétodoRutaDescripciónGET/api/usuariosListar todos los usuariosGET/api/usuarios/:idObtener un usuario por IDPOST/api/usuariosCrear un nuevo usuarioPATCH/api/usuarios/:idActualizar un usuarioDELETE/api/usuarios/:idEliminar un usuario
+---
 
-Módulos implementados
+## Endpoints disponibles
 
- auth — Autenticación JWT
- clientes — Gestión de clientes
- usuarios — Gestión de usuarios
- oficinas — Gestión de oficinas
- espacios — Gestión de espacios
- reservas — Gestión de reservas con recurrencia
- lista-espera — Lista de espera en tiempo real
- notificaciones — Notificaciones automáticas
- planes — Planes de suscripción
- suscripciones — Suscripciones de clientes
- pagos — Gestión de pagos
- correo — Envío de emails automáticos
- dashboard — Estadísticas y métricas
- events — WebSockets en tiempo real
+### Clientes — `/api/clientes`
 
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/clientes` | Listar todos los clientes |
+| GET | `/api/clientes/:id` | Obtener un cliente por ID |
+| POST | `/api/clientes` | Crear un nuevo cliente |
+| PATCH | `/api/clientes/:id` | Actualizar un cliente |
+| DELETE | `/api/clientes/:id` | Eliminar un cliente |
 
-Autores
+### Usuarios — `/api/usuarios`
 
-Juan José De Abreu Alvarez
-Ayoze Pestano De la Rosa
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/usuarios` | Listar todos los usuarios |
+| GET | `/api/usuarios/:id` | Obtener un usuario por ID |
+| POST | `/api/usuarios` | Crear un nuevo usuario |
+| PATCH | `/api/usuarios/:id` | Actualizar un usuario |
+| DELETE | `/api/usuarios/:id` | Eliminar un usuario |
 
-Tutor: José David Díaz Díaz
-Centro: C.I.F.P. Cesar Manrique — C.F.G.S. Desarrollo de Aplicaciones Web
+---
+
+## Módulos implementados
+
+- [x] auth — Autenticación JWT
+- [x] clientes — Gestión de clientes
+- [x] usuarios — Gestión de usuarios
+- [x] oficinas — Gestión de oficinas
+- [x] espacios — Gestión de espacios
+- [x] reservas — Gestión de reservas con recurrencia
+- [x] lista-espera — Lista de espera en tiempo real
+- [x] notificaciones — Notificaciones automáticas
+- [x] planes — Planes de suscripción
+- [x] suscripciones — Suscripciones de clientes
+- [x] pagos — Gestión de pagos
+- [x] correo — Envío de emails automáticos
+- [x] dashboard — Estadísticas y métricas
+- [x] events — WebSockets en tiempo real
+
+---
+
+## Autores
+
+- Juan José De Abreu Alvarez
+- Ayoze Pestano De la Rosa
+
+**Tutor:** José David Díaz Díaz  
+**Centro:** C.I.F.P. Cesar Manrique — C.F.G.S. Desarrollo de Aplicaciones Web
