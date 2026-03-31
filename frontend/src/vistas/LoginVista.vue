@@ -5,6 +5,7 @@
       <!-- Logo -->
       <div class="flex flex-col items-center gap-1">
         <img src="../assets/logo.png" alt="iCoWork" class="w-90" />
+        <p class="text-lg font-medium" style="color: #42b883">Reserva · Gestiona tus espacios</p>
       </div>
 
       <!-- Separador -->
