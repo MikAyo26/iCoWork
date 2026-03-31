@@ -13,7 +13,12 @@ const router = createRouter({
         name: 'login',
         component: LoginVista,
     },
-],
+    {
+        path: '/dashboard',
+        name: 'dashboard',
+        component: () => import('../vistas/DashboardVista.vue'),
+        },
+    ],
 })
 
 export default router

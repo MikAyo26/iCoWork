@@ -16,7 +16,7 @@
       </div>
 
       <!-- Formulario -->
-      <form class="w-full flex flex-col gap-4" @submit.prevent="iniciarSesion">
+      <form class="w-full flex flex-col gap-4" @submit.prevent="manejarLogin">
 
         <div class="flex flex-col gap-1">
           <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Correo</label>
@@ -49,12 +49,12 @@
         </div>
 
         <Button
-            type="submit"
-            label="Entrar"
-            icon="pi pi-sign-in"
-            class="w-full mt-1 transition-shadow duration-200 hover:shadow-lg"
-            :loading="cargando"
-            :style="{ background: 'linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)', border: 'none' }"
+          type="submit"
+          label="Entrar"
+          icon="pi pi-sign-in"
+          class="w-full mt-1 transition-shadow duration-200 hover:shadow-lg"
+          :loading="cargando"
+          :style="{ background: 'linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)', border: 'none' }"
         />
 
         <p class="text-center text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors">
@@ -73,6 +73,7 @@ import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import { iniciarSesion } from '../servicios/autenticacion'
 
 const router = useRouter()
 
@@ -114,14 +115,21 @@ function validar(): boolean {
 }
 
 /** Envía las credenciales al backend y redirige si son correctas */
-async function iniciarSesion() {
+async function manejarLogin() {
   if (!validar()) return
 
   cargando.value = true
 
   try {
-    // TODO: conectar con el endpoint POST /api/auth/login
-    console.log('Credenciales:', formulario)
+    const respuesta = await iniciarSesion({
+      correo: formulario.correo,
+      contrasena: formulario.contrasena,
+    })
+
+    // Guardar token y datos del usuario en localStorage
+localStorage.setItem('token', respuesta.accessToken)
+localStorage.setItem('usuario', JSON.stringify(respuesta.usuario))
+
     await router.push('/dashboard')
   } catch {
     errores.general = 'Credenciales incorrectas. Inténtalo de nuevo.'
