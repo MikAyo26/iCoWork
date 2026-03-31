@@ -20,14 +20,18 @@ Aplicación web para la gestión de espacios de coworking. Permite a empresas y 
 | Socket.io | — | Comunicación en tiempo real |
 | class-validator | — | Validación de DTOs |
 
-### Frontend  <-- ¡EN DESARROLLO!
+### Frontend
 
-| Tecnología | Uso |
-|---|---|
-| Vue.js | Framework principal |
-| Vite | Bundler y servidor de desarrollo |
-| TypeScript | Tipado estático |
-| Axios | Comunicación con la API |
+| Tecnología | Versión | Uso |
+|---|---|---|
+| Vue.js | 3 | Framework principal |
+| Vite | 5+ | Bundler y servidor de desarrollo |
+| TypeScript | 5+ | Tipado estático |
+| Vue Router | 4 | Navegación entre vistas |
+| Axios | — | Comunicación con la API |
+| Tailwind CSS | 4 | Estilos y diseño responsive |
+| PrimeVue | 4 | Componentes UI |
+| PrimeIcons | — | Iconografía |
 
 ### Infraestructura
 
@@ -41,7 +45,7 @@ Aplicación web para la gestión de espacios de coworking. Permite a empresas y 
 ## Estructura del proyecto
 ```
 iCoWork/
-├── database/
+├── db/
 │   ├── icowork_schema.sql
 │   └── icowork_datos.sql
 ├── backend/
@@ -68,7 +72,22 @@ iCoWork/
 │   └── tsconfig.json
 ├── frontend/
 │   ├── src/
+│   │   ├── assets/
+│   │   ├── componentes/
+│   │   ├── diseños/
+│   │   ├── enrutador/
+│   │   │   └── index.ts
+│   │   ├── servicios/
+│   │   │   ├── axios.ts
+│   │   │   └── autenticacion.ts
+│   │   ├── vistas/
+│   │   │   ├── LoginVista.vue
+│   │   │   └── DashboardVista.vue
+│   │   ├── App.vue
+│   │   ├── main.ts
+│   │   └── style.css
 │   ├── public/
+│   ├── .env.example
 │   ├── index.html
 │   ├── package.json
 │   └── vite.config.ts
@@ -92,7 +111,7 @@ iCoWork/
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/MikAyo/iCoWork.git
+git clone https://github.com/MikAyo26/iCoWork.git
 cd iCoWork
 ```
 
@@ -100,8 +119,8 @@ cd iCoWork
 
 Abre MySQL Workbench y ejecuta los scripts en este orden:
 ```
-1. database/icowork_schema.sql
-2. database/icowork_datos.sql
+1. db/icowork_schema.sql
+2. db/icowork_datos.sql
 ```
 
 ### 3. Configurar el Backend
@@ -131,6 +150,8 @@ El frontend estará disponible en `http://localhost:5173`
 
 ## Variables de entorno
 
+### Backend
+
 Crea el archivo `.env` en la carpeta `backend/` a partir de `.env.example`. Nunca subas el `.env` real al repositorio.
 ```env
 # Base de datos
@@ -149,9 +170,23 @@ JWT_EXPIRA_EN=8h
 PUERTO=3000
 ```
 
+### Frontend
+
+Crea el archivo `.env` en la carpeta `frontend/` a partir de `.env.example`.
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
 ---
 
 ## Endpoints disponibles
+
+### Autenticación — `/api/auth`
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/auth/login` | Iniciar sesión y obtener token JWT |
+| GET | `/api/auth/perfil` | Obtener perfil del usuario autenticado |
 
 ### Clientes — `/api/clientes`
 
@@ -175,7 +210,7 @@ PUERTO=3000
 
 ---
 
-## Módulos implementados
+## Módulos backend implementados
 
 - [x] auth — Autenticación JWT
 - [x] clientes — Gestión de clientes
@@ -191,6 +226,15 @@ PUERTO=3000
 - [x] correo — Envío de emails automáticos
 - [x] dashboard — Estadísticas y métricas
 - [x] events — WebSockets en tiempo real
+
+## Vistas frontend implementadas
+
+- [x] LoginVista — Autenticación con JWT, validación de formulario y redirección
+- [ ] DashboardVista — En construcción
+- [ ] EspaciosVista — Pendiente
+- [ ] ReservasVista — Pendiente
+- [ ] NotificacionesVista — Pendiente
+- [ ] PerfilVista — Pendiente
 
 ---
 
