@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginVista from '../vistas/LoginVista.vue'
+import DiseñoAuth from '../diseños/DiseñoAuth.vue'
+import DiseñoApp from '../diseños/DiseñoApp.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,24 +10,30 @@ const router = createRouter({
       redirect: '/login',
     },
     {
-      path: '/login',
-      name: 'login',
-      component: LoginVista,
-      /**
-       * soloInvitados: true — esta ruta solo es accesible si el usuario NO tiene sesión activa.
-       * Si ya está autenticado y navega a /login, el guard lo redirige al dashboard.
-       */
+      /** Layout limpio para rutas públicas (login) */
+      path: '/',
+      component: DiseñoAuth,
       meta: { soloInvitados: true },
+      children: [
+        {
+          path: 'login',
+          name: 'login',
+          component: () => import('../vistas/LoginVista.vue'),
+        },
+      ],
     },
     {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: () => import('../vistas/DashboardVista.vue'),
-      /**
-       * requiereAuth: true — esta ruta solo es accesible si el usuario tiene un token JWT válido.
-       * Si no está autenticado, el guard lo redirige al login.
-       */
+      /** Layout principal con sidebar para rutas privadas */
+      path: '/',
+      component: DiseñoApp,
       meta: { requiereAuth: true },
+      children: [
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: () => import('../vistas/DashboardVista.vue'),
+        },
+      ],
     },
   ],
 })
