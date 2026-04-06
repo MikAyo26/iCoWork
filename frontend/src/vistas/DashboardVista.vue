@@ -33,11 +33,11 @@
     </div>
 
 <!-- Tarjetas de resumen rápido -->
-<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+<div class="flex flex-wrap justify-center gap-3">
   <div
     v-for="tarjeta in tarjetas"
     :key="tarjeta.titulo"
-    class="bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3"
+    class="bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3 w-52"
   >
     <div
       class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
