@@ -33,6 +33,11 @@ const router = createRouter({
           name: 'dashboard',
           component: () => import('../vistas/DashboardVista.vue'),
         },
+        {
+          path: 'espacios',
+          name: 'espacios',
+          component: () => import('../vistas/EspaciosVista.vue'),
+        },
       ],
     },
   ],
