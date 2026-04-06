@@ -32,25 +32,25 @@
       </div>
     </div>
 
-    <!-- Tarjetas de resumen rápido -->
-    <div class="grid gap-4" :class="gridCols">
-      <div
-        v-for="tarjeta in tarjetas"
-        :key="tarjeta.titulo"
-        class="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-4"
-      >
-        <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-          :style="{ background: tarjeta.color }"
-        >
-          <i :class="tarjeta.icono" class="text-white text-xl"></i>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500">{{ tarjeta.titulo }}</p>
-          <p class="text-2xl font-bold text-gray-800">{{ tarjeta.valor }}</p>
-        </div>
-      </div>
+<!-- Tarjetas de resumen rápido -->
+<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+  <div
+    v-for="tarjeta in tarjetas"
+    :key="tarjeta.titulo"
+    class="bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3"
+  >
+    <div
+      class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+      :style="{ background: tarjeta.color }"
+    >
+      <i :class="tarjeta.icono" class="text-white text-lg"></i>
     </div>
+    <div>
+      <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">{{ tarjeta.titulo }}</p>
+      <p class="text-3xl font-bold text-gray-800 mt-1">{{ tarjeta.valor }}</p>
+    </div>
+  </div>
+</div>
 
   </div>
 </template>
