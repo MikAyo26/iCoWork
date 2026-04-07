@@ -98,6 +98,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { type Espacio, obtenerEspaciosPorOficina } from '../servicios/espacios'
+import { useRouter } from 'vue-router'
 
 /** Lista de espacios cargados desde el backend */
 const espacios = ref<Espacio[]>([])
@@ -110,6 +111,8 @@ const error = ref('')
 
 /** Filtro activo por tipo de espacio */
 const filtroActivo = ref('todos')
+
+const router = useRouter()
 
 /** Opciones de filtro disponibles */
 const filtros = [
@@ -177,9 +180,8 @@ function etiquetaTipo(tipo: string): string {
 }
 
 
-/** Navega a la vista de reserva del espacio seleccionado */
+/** Redirige a Mis Reservas con el espacio preseleccionado */
 function reservar(espacio: Espacio) {
-  // TODO: abrir modal de reserva o navegar a /reservas/nuevo?espacioId=X
-  console.log('Reservar espacio:', espacio)
+  router.push({ name: 'reservas', query: { espacioId: espacio.id.toString() } })
 }
 </script>
