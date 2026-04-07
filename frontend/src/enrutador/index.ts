@@ -38,6 +38,11 @@ const router = createRouter({
           name: 'espacios',
           component: () => import('../vistas/EspaciosVista.vue'),
         },
+        {
+          path: 'reservas',
+          name: 'reservas',
+          component: () => import('../vistas/ReservasVista.vue'),
+        },
       ],
     },
   ],
