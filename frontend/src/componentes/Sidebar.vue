@@ -65,6 +65,7 @@ const { nombre, rol, iniciales, tieneRol } = useUsuarioActual()
 /** Definición completa del menú con control de roles */
 const menu = [
   { nombre: 'Dashboard',       ruta: '/dashboard',     icono: 'pi pi-home',         roles: ['superadmin', 'admin', 'empleado'] },
+  { nombre: 'Perfil', ruta: '/perfil', icono: 'pi pi-user', roles: ['superadmin', 'admin', 'empleado'] },
   { nombre: 'Mis Reservas',    ruta: '/reservas',       icono: 'pi pi-calendar',     roles: ['superadmin', 'admin', 'empleado'] },
   { nombre: 'Espacios',        ruta: '/espacios',       icono: 'pi pi-building',     roles: ['superadmin', 'admin', 'empleado'] },
   { nombre: 'Lista de espera', ruta: '/lista-espera',   icono: 'pi pi-clock',        roles: ['superadmin', 'admin', 'empleado'] },

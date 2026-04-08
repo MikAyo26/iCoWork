@@ -53,6 +53,11 @@ const router = createRouter({
           name: 'lista-espera',
           component: () => import('../vistas/ListaEsperaVista.vue'),
         },
+        {
+          path: 'perfil',
+          name: 'perfil',
+          component: () => import('../vistas/PerfilVista.vue'),
+        },
       ],
     },
   ],
