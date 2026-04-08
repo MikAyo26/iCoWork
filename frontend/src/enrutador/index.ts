@@ -48,6 +48,11 @@ const router = createRouter({
           name: 'notificaciones',
           component: () => import('../vistas/NotificacionesVista.vue'),
         },
+        {
+          path: 'lista-espera',
+          name: 'lista-espera',
+          component: () => import('../vistas/ListaEsperaVista.vue'),
+        },
       ],
     },
   ],
