@@ -43,6 +43,11 @@ const router = createRouter({
           name: 'reservas',
           component: () => import('../vistas/ReservasVista.vue'),
         },
+        {
+          path: 'notificaciones',
+          name: 'notificaciones',
+          component: () => import('../vistas/NotificacionesVista.vue'),
+        },
       ],
     },
   ],
