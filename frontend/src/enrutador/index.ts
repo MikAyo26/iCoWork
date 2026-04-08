@@ -58,6 +58,11 @@ const router = createRouter({
           name: 'perfil',
           component: () => import('../vistas/PerfilVista.vue'),
         },
+        {
+          path: 'usuarios',
+          name: 'usuarios',
+          component: () => import('../vistas/UsuariosVista.vue'),
+        },
       ],
     },
   ],
