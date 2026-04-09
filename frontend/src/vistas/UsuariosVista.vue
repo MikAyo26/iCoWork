@@ -7,7 +7,43 @@
         <h1 class="text-2xl font-bold text-gray-800">Usuarios</h1>
         <p class="text-sm text-gray-400 mt-1">Gestión de usuarios del sistema</p>
       </div>
-      <!-- TODO: añadir botón para crear nuevo usuario con modal -->
+      <button
+        @click="abrirModalCrear"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+        style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
+      >
+        <i class="pi pi-plus"></i>
+        Nuevo usuario
+      </button>
+    </div>
+
+    <!-- Filtros por rol y por cliente -->
+    <div class="flex gap-2 flex-wrap">
+      <button
+        v-for="filtro in filtrosRol"
+        :key="filtro.valor"
+        @click="filtroRolActivo = filtro.valor"
+        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150"
+        :class="filtroRolActivo === filtro.valor
+          ? 'bg-green-600 text-white'
+          : 'bg-white text-gray-500 hover:bg-gray-100'"
+      >
+        {{ filtro.etiqueta }}
+      </button>
+      <div class="w-px bg-gray-200 mx-1"></div>
+      <select
+        v-model="filtroClienteActivo"
+        class="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+      >
+        <option value="">Todos los clientes</option>
+        <option
+          v-for="cliente in clientesUnicos"
+          :key="cliente.id"
+          :value="cliente.id"
+        >
+          {{ cliente.nombre }}
+        </option>
+      </select>
     </div>
 
     <!-- Estado de carga -->
@@ -19,8 +55,6 @@
     <div v-else-if="error" class="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
       <p class="text-red-500 text-sm">{{ error }}</p>
     </div>
-
-    <!-- TODO: añadir filtros por rol y por cliente -->
 
     <!-- Tabla de usuarios -->
     <div v-else class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -36,7 +70,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
-          <tr v-for="usuario in usuarios" :key="usuario.id" class="hover:bg-gray-50 transition-colors">
+          <tr v-for="usuario in usuariosFiltrados" :key="usuario.id" class="hover:bg-gray-50 transition-colors">
 
             <!-- Nombre e iniciales -->
             <td class="px-6 py-4">
@@ -80,8 +114,13 @@
             </td>
 
             <!-- Acciones -->
-            <td class="px-6 py-4 text-right">
-              <!-- TODO: añadir botón editar usuario -->
+            <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
+              <button
+                @click="abrirModalEditar(usuario)"
+                class="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                <i class="pi pi-pencil"></i>
+              </button>
               <button
                 @click="confirmarEliminacion(usuario)"
                 class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
@@ -93,16 +132,221 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Sin resultados con filtros -->
+      <div
+        v-if="usuariosFiltrados.length === 0"
+        class="text-center py-12 text-gray-400"
+      >
+        <i class="pi pi-users text-3xl mb-2 block"></i>
+        <p class="text-sm">No hay usuarios con los filtros seleccionados</p>
+      </div>
+    </div>
+
+    <!-- Modal crear usuario -->
+    <div
+      v-if="modalCrearVisible"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+      @click.self="modalCrearVisible = false"
+    >
+      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+        <h2 class="text-lg font-bold text-gray-800">Nuevo usuario</h2>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre completo</label>
+          <input
+            v-model="formularioCrear.nombre"
+            type="text"
+            placeholder="Juan García López"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Correo electrónico</label>
+          <input
+            v-model="formularioCrear.correo"
+            type="email"
+            placeholder="juan@empresa.com"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Contraseña</label>
+          <input
+            v-model="formularioCrear.contrasena"
+            type="password"
+            placeholder="Mínimo 8 caracteres"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</label>
+          <input
+            v-model="formularioCrear.departamento"
+            type="text"
+            placeholder="Desarrollo, Marketing... (opcional)"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</label>
+            <select
+              v-model="formularioCrear.rol"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+              <option value="empleado">Empleado</option>
+              <option value="admin">Administrador</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente ID</label>
+            <input
+              v-model.number="formularioCrear.clienteId"
+              type="number"
+              placeholder="Opcional"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+        </div>
+
+        <div v-if="errorModalCrear" class="bg-red-50 border border-red-100 rounded-lg p-3">
+          <p class="text-red-500 text-xs">{{ errorModalCrear }}</p>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button
+            @click="modalCrearVisible = false"
+            class="flex-1 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="guardarUsuario"
+            :disabled="guardando"
+            class="flex-1 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
+          >
+            <i v-if="guardando" class="pi pi-spin pi-spinner mr-1"></i>
+            {{ guardando ? 'Guardando...' : 'Crear usuario' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal editar usuario -->
+    <div
+      v-if="modalEditarVisible"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+      @click.self="modalEditarVisible = false"
+    >
+      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+        <h2 class="text-lg font-bold text-gray-800">Editar usuario</h2>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre completo</label>
+          <input
+            v-model="formularioEditar.nombre"
+            type="text"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Correo electrónico</label>
+          <input
+            v-model="formularioEditar.correo"
+            type="email"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Nueva contraseña</label>
+          <input
+            v-model="formularioEditar.contrasena"
+            type="password"
+            placeholder="Dejar vacío para no cambiar"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</label>
+          <input
+            v-model="formularioEditar.departamento"
+            type="text"
+            placeholder="Opcional"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</label>
+            <select
+              v-model="formularioEditar.rol"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+            >
+              <option value="empleado">Empleado</option>
+              <option value="admin">Administrador</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente ID</label>
+            <input
+              v-model.number="formularioEditar.clienteId"
+              type="number"
+              placeholder="Opcional"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+        </div>
+
+        <div v-if="errorModalEditar" class="bg-red-50 border border-red-100 rounded-lg p-3">
+          <p class="text-red-500 text-xs">{{ errorModalEditar }}</p>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button
+            @click="modalEditarVisible = false"
+            class="flex-1 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="guardarEdicion"
+            :disabled="guardando"
+            class="flex-1 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
+          >
+            <i v-if="guardando" class="pi pi-spin pi-spinner mr-1"></i>
+            {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </div>
     </div>
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { type Usuario, obtenerUsuarios, eliminarUsuario } from '../servicios/usuarios'
+import { computed, onMounted, reactive, ref } from 'vue'
+import {
+  type Usuario,
+  obtenerUsuarios,
+  eliminarUsuario,
+  crearUsuario,
+  actualizarUsuario,
+} from '../servicios/usuarios'
 
-/** Lista de usuarios cargados desde el backend */
+/** Lista completa de usuarios cargados desde el backend */
 const usuarios = ref<Usuario[]>([])
 
 /** Estado de carga inicial */
@@ -110,6 +354,79 @@ const cargando = ref(true)
 
 /** Mensaje de error general */
 const error = ref('')
+
+/** Filtro activo por rol */
+const filtroRolActivo = ref('todos')
+
+/** Filtro activo por cliente (ID o cadena vacía para todos) */
+const filtroClienteActivo = ref<number | ''>('')
+
+/** Opciones de filtro por rol */
+const filtrosRol = [
+  { valor: 'todos',      etiqueta: 'Todos' },
+  { valor: 'superadmin', etiqueta: 'Superadmin' },
+  { valor: 'admin',      etiqueta: 'Administrador' },
+  { valor: 'empleado',   etiqueta: 'Empleado' },
+]
+
+/**
+ * Lista de clientes únicos extraída de los usuarios cargados.
+ * Se usa para poblar el selector de filtro por cliente.
+ */
+const clientesUnicos = computed(() => {
+  const mapa = new Map<number, { id: number; nombre: string }>()
+  usuarios.value.forEach((u) => {
+    if (u.cliente) mapa.set(u.cliente.id, u.cliente)
+  })
+  return Array.from(mapa.values())
+})
+
+/** Usuarios filtrados según rol y cliente seleccionados */
+const usuariosFiltrados = computed(() => {
+  return usuarios.value.filter((u) => {
+    const pasaRol = filtroRolActivo.value === 'todos' || u.rol === filtroRolActivo.value
+    const pasaCliente = filtroClienteActivo.value === '' || u.clienteId === filtroClienteActivo.value
+    return pasaRol && pasaCliente
+  })
+})
+
+/** Controla la visibilidad del modal de creación */
+const modalCrearVisible = ref(false)
+
+/** Controla la visibilidad del modal de edición */
+const modalEditarVisible = ref(false)
+
+/** ID del usuario que se está editando */
+const usuarioEditandoId = ref<number | null>(null)
+
+/** Indica si hay una petición de guardado en curso */
+const guardando = ref(false)
+
+/** Mensaje de error del modal de creación */
+const errorModalCrear = ref('')
+
+/** Mensaje de error del modal de edición */
+const errorModalEditar = ref('')
+
+/** Datos reactivos del formulario de creación */
+const formularioCrear = reactive({
+  nombre: '',
+  correo: '',
+  contrasena: '',
+  departamento: '',
+  rol: 'empleado' as 'superadmin' | 'admin' | 'empleado',
+  clienteId: undefined as number | undefined,
+})
+
+/** Datos reactivos del formulario de edición */
+const formularioEditar = reactive({
+  nombre: '',
+  correo: '',
+  contrasena: '',
+  departamento: '',
+  rol: 'empleado' as 'superadmin' | 'admin' | 'empleado',
+  clienteId: undefined as number | undefined,
+})
 
 /** Carga todos los usuarios al montar el componente */
 onMounted(async () => {
@@ -121,6 +438,109 @@ onMounted(async () => {
     cargando.value = false
   }
 })
+
+/** Abre el modal de creación limpiando el formulario */
+function abrirModalCrear() {
+  formularioCrear.nombre = ''
+  formularioCrear.correo = ''
+  formularioCrear.contrasena = ''
+  formularioCrear.departamento = ''
+  formularioCrear.rol = 'empleado'
+  formularioCrear.clienteId = undefined
+  errorModalCrear.value = ''
+  modalCrearVisible.value = true
+}
+
+/**
+ * Abre el modal de edición precargando los datos del usuario seleccionado.
+ * @param usuario Usuario a editar
+ */
+function abrirModalEditar(usuario: Usuario) {
+  usuarioEditandoId.value = usuario.id
+  formularioEditar.nombre = usuario.nombre
+  formularioEditar.correo = usuario.correo
+  formularioEditar.contrasena = ''
+  formularioEditar.departamento = usuario.departamento ?? ''
+  formularioEditar.rol = usuario.rol
+  formularioEditar.clienteId = usuario.clienteId ?? undefined
+  errorModalEditar.value = ''
+  modalEditarVisible.value = true
+}
+
+/**
+ * Valida y envía el nuevo usuario al backend.
+ * Recarga la lista tras una creación exitosa.
+ */
+async function guardarUsuario() {
+  errorModalCrear.value = ''
+
+  if (!formularioCrear.nombre || !formularioCrear.correo || !formularioCrear.contrasena) {
+    errorModalCrear.value = 'Nombre, correo y contraseña son obligatorios'
+    return
+  }
+
+  if (formularioCrear.contrasena.length < 8) {
+    errorModalCrear.value = 'La contraseña debe tener mínimo 8 caracteres'
+    return
+  }
+
+  guardando.value = true
+  try {
+    await crearUsuario({
+      nombre: formularioCrear.nombre,
+      correo: formularioCrear.correo,
+      contrasena: formularioCrear.contrasena,
+      departamento: formularioCrear.departamento || undefined,
+      rol: formularioCrear.rol,
+      clienteId: formularioCrear.clienteId,
+    })
+    usuarios.value = await obtenerUsuarios()
+    modalCrearVisible.value = false
+  } catch {
+    errorModalCrear.value = 'No se pudo crear el usuario. El correo puede estar ya registrado.'
+  } finally {
+    guardando.value = false
+  }
+}
+
+/**
+ * Valida y envía los cambios del usuario editado al backend.
+ * Solo envía los campos que han cambiado.
+ * Recarga la lista tras una edición exitosa.
+ */
+async function guardarEdicion() {
+  errorModalEditar.value = ''
+
+  if (!formularioEditar.nombre || !formularioEditar.correo) {
+    errorModalEditar.value = 'Nombre y correo son obligatorios'
+    return
+  }
+
+  if (formularioEditar.contrasena && formularioEditar.contrasena.length < 8) {
+    errorModalEditar.value = 'La contraseña debe tener mínimo 8 caracteres'
+    return
+  }
+
+  if (!usuarioEditandoId.value) return
+
+  guardando.value = true
+  try {
+    await actualizarUsuario(usuarioEditandoId.value, {
+      nombre: formularioEditar.nombre,
+      correo: formularioEditar.correo,
+      contrasena: formularioEditar.contrasena || undefined,
+      departamento: formularioEditar.departamento || undefined,
+      rol: formularioEditar.rol,
+      clienteId: formularioEditar.clienteId,
+    })
+    usuarios.value = await obtenerUsuarios()
+    modalEditarVisible.value = false
+  } catch {
+    errorModalEditar.value = 'No se pudo actualizar el usuario.'
+  } finally {
+    guardando.value = false
+  }
+}
 
 /** Genera las iniciales de un nombre */
 function iniciales(nombre: string): string {
@@ -157,8 +577,4 @@ async function confirmarEliminacion(usuario: Usuario) {
     alert('No se pudo eliminar el usuario.')
   }
 }
-
-// TODO: implementar modal de creación de usuario
-// TODO: implementar modal de edición de usuario
-// TODO: añadir filtros por rol y por cliente
 </script>
