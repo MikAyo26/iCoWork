@@ -125,6 +125,7 @@ CREATE TABLE planes (
     max_usuarios    SMALLINT UNSIGNED,
     descripcion     TEXT,
     activo          TINYINT(1)      NOT NULL DEFAULT 1,
+    creado_en       TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
 
