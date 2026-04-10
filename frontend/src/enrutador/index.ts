@@ -93,6 +93,11 @@ const router = createRouter({
           name: 'pagos',
           component: () => import('../vistas/PagosVista.vue'),
         },
+        {
+          path: 'estadisticas',
+          name: 'estadisticas',
+          component: () => import('../vistas/EstadisticasVista.vue'),
+        },
       ],
     },
   ],
