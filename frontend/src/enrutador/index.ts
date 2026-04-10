@@ -73,6 +73,21 @@ const router = createRouter({
           name: 'oficinas',
           component: () => import('../vistas/OficinasVista.vue'),
         },
+        {
+          path: 'planes',
+          name: 'planes',
+          component: () => import('../vistas/PlanesVista.vue'),
+        },
+        {
+  path: 'pagos',
+  name: 'pagos',
+  component: () => import('../vistas/DashboardVista.vue'),
+        },
+        {
+          path: 'estadisticas',
+          name: 'estadisticas',
+          component: () => import('../vistas/DashboardVista.vue'),
+        },
       ],
     },
   ],
