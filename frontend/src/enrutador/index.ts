@@ -10,7 +10,7 @@ const router = createRouter({
       redirect: '/login',
     },
     {
-      /** Layout limpio para rutas públicas (login) */
+      /** Layout limpio para rutas públicas */
       path: '/',
       component: DiseñoAuth,
       meta: { soloInvitados: true },
@@ -32,71 +32,73 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: () => import('../vistas/DashboardVista.vue'),
-        },
-        {
-          path: 'espacios',
-          name: 'espacios',
-          component: () => import('../vistas/EspaciosVista.vue'),
-        },
-        {
-          path: 'reservas',
-          name: 'reservas',
-          component: () => import('../vistas/ReservasVista.vue'),
-        },
-        {
-          path: 'notificaciones',
-          name: 'notificaciones',
-          component: () => import('../vistas/NotificacionesVista.vue'),
-        },
-        {
-          path: 'lista-espera',
-          name: 'lista-espera',
-          component: () => import('../vistas/ListaEsperaVista.vue'),
+          meta: { roles: ['superadmin', 'admin', 'empleado'] },
         },
         {
           path: 'perfil',
           name: 'perfil',
           component: () => import('../vistas/PerfilVista.vue'),
+          meta: { roles: ['superadmin', 'admin', 'empleado'] },
+        },
+        {
+          path: 'reservas',
+          name: 'reservas',
+          component: () => import('../vistas/ReservasVista.vue'),
+          meta: { roles: ['superadmin', 'admin', 'empleado'] },
+        },
+        {
+          path: 'espacios',
+          name: 'espacios',
+          component: () => import('../vistas/EspaciosVista.vue'),
+          meta: { roles: ['superadmin', 'admin', 'empleado'] },
+        },
+        {
+          path: 'lista-espera',
+          name: 'lista-espera',
+          component: () => import('../vistas/ListaEsperaVista.vue'),
+          meta: { roles: ['superadmin', 'admin', 'empleado'] },
+        },
+        {
+          path: 'notificaciones',
+          name: 'notificaciones',
+          component: () => import('../vistas/NotificacionesVista.vue'),
+          meta: { roles: ['superadmin', 'admin', 'empleado'] },
         },
         {
           path: 'usuarios',
           name: 'usuarios',
           component: () => import('../vistas/UsuariosVista.vue'),
-        },
-        {
-          path: 'clientes',
-          name: 'clientes',
-          component: () => import('../vistas/ClientesVista.vue'),
-        },
-        {
-          path: 'oficinas',
-          name: 'oficinas',
-          component: () => import('../vistas/OficinasVista.vue'),
-        },
-        {
-          path: 'planes',
-          name: 'planes',
-          component: () => import('../vistas/PlanesVista.vue'),
-        },
-        {
-  path: 'pagos',
-  name: 'pagos',
-  component: () => import('../vistas/DashboardVista.vue'),
-        },
-        {
-          path: 'estadisticas',
-          name: 'estadisticas',
-          component: () => import('../vistas/DashboardVista.vue'),
+          meta: { roles: ['superadmin', 'admin'] },
         },
         {
           path: 'pagos',
           name: 'pagos',
           component: () => import('../vistas/PagosVista.vue'),
+          meta: { roles: ['superadmin', 'admin'] },
         },
         {
           path: 'estadisticas',
           name: 'estadisticas',
           component: () => import('../vistas/EstadisticasVista.vue'),
+          meta: { roles: ['superadmin', 'admin'] },
+        },
+        {
+          path: 'clientes',
+          name: 'clientes',
+          component: () => import('../vistas/ClientesVista.vue'),
+          meta: { roles: ['superadmin'] },
+        },
+        {
+          path: 'oficinas',
+          name: 'oficinas',
+          component: () => import('../vistas/OficinasVista.vue'),
+          meta: { roles: ['superadmin'] },
+        },
+        {
+          path: 'planes',
+          name: 'planes',
+          component: () => import('../vistas/PlanesVista.vue'),
+          meta: { roles: ['superadmin'] },
         },
       ],
     },
@@ -107,13 +109,10 @@ const router = createRouter({
  * Guard global de navegación — se ejecuta antes de cada cambio de ruta.
  *
  * Lógica:
- * 1. Si la ruta destino requiere autenticación y no hay token → redirige a /login
- * 2. Si la ruta destino es solo para invitados y hay token activo → redirige a /dashboard
- * 3. En cualquier otro caso → permite la navegación normalmente
- *
- * @param destino  - Ruta a la que el usuario intenta navegar
- * @param _origen  - Ruta desde la que viene (no utilizada)
- * @param siguiente - Función que autoriza o redirige la navegación
+ * 1. Ruta privada sin token → redirige a /login
+ * 2. Ruta de invitados con token → redirige a /dashboard
+ * 3. Ruta con roles definidos → comprueba que el usuario tiene permiso
+ * 4. Sin permiso → redirige al dashboard
  */
 router.beforeEach((destino, _origen, siguiente) => {
   const token = localStorage.getItem('token')
@@ -128,7 +127,18 @@ router.beforeEach((destino, _origen, siguiente) => {
     return siguiente({ name: 'dashboard' })
   }
 
-  // Navegación permitida
+  // Comprueba el rol del usuario si la ruta tiene roles definidos
+  const rolesPermitidos = destino.meta.roles as string[] | undefined
+  if (rolesPermitidos && token) {
+    const datosUsuario = localStorage.getItem('usuario')
+    const rol = datosUsuario ? (JSON.parse(datosUsuario) as { rol: string }).rol : ''
+
+    if (!rolesPermitidos.includes(rol)) {
+      /** Rol sin permiso → redirige al dashboard */
+      return siguiente({ name: 'dashboard' })
+    }
+  }
+
   siguiente()
 })
 
