@@ -96,9 +96,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { type Espacio, obtenerEspaciosPorOficina } from '../servicios/espacios'
 import { useRouter } from 'vue-router'
+import { useSocket } from '../composiciones/useSocket'
 
 /** Lista de espacios cargados desde el backend */
 const espacios = ref<Espacio[]>([])
@@ -113,6 +114,8 @@ const error = ref('')
 const filtroActivo = ref('todos')
 
 const router = useRouter()
+
+const { suscribirEspacio, alCambiarDisponibilidad, quitarListener } = useSocket()
 
 /** Opciones de filtro disponibles */
 const filtros = [
@@ -184,4 +187,31 @@ function etiquetaTipo(tipo: string): string {
 function reservar(espacio: Espacio) {
   router.push({ name: 'reservas', query: { espacioId: espacio.id.toString() } })
 }
+
+/** Manejador de cambios de disponibilidad en tiempo real */
+function alCambioDisponibilidad(datos: { espacioId: number; disponible: boolean }) {
+  const espacio = espacios.value.find((e) => e.id === datos.espacioId)
+  if (espacio) {
+    espacio.activo = datos.disponible
+  }
+}
+
+/** Al montar suscribe a todos los espacios cargados */
+onMounted(async () => {
+  try {
+    espacios.value = await obtenerEspaciosPorOficina(1)
+    /** Suscribe a actualizaciones en tiempo real de cada espacio */
+    espacios.value.forEach((e) => suscribirEspacio(e.id))
+    alCambiarDisponibilidad(alCambioDisponibilidad)
+  } catch {
+    error.value = 'No se pudieron cargar los espacios. Inténtalo de nuevo.'
+  } finally {
+    cargando.value = false
+  }
+})
+
+/** Al desmontar elimina el listener de disponibilidad */
+onUnmounted(() => {
+  quitarListener('disponibilidad:cambio', alCambioDisponibilidad)
+})
 </script>

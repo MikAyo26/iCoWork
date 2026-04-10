@@ -110,13 +110,14 @@
     </template>
 
     <script setup lang="ts">
-    import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
     import {
     type Notificacion,
     obtenerNotificaciones,
     marcarLeida,
     marcarTodasLeidas,
     } from '../servicios/notificaciones'
+    import { useSocket } from '../composiciones/useSocket'
 
     /** Lista de notificaciones del usuario */
     const notificaciones = ref<Notificacion[]>([])
@@ -148,6 +149,9 @@
     if (filtroActivo.value === 'leidas')    return notificaciones.value.filter((n) => n.leida)
     return notificaciones.value
     })
+
+    const { alEsperaDisponible, quitarListener } = useSocket()
+
 
     /** Carga las notificaciones del usuario al montar el componente */
     onMounted(async () => {
@@ -237,4 +241,28 @@
         minute: '2-digit',
     })
     }
+
+    /** Manejador de notificaciones de lista de espera en tiempo real */
+function alNuevaEspera(_datos: { espacioId: number; fecha: Date }) {
+  /** Recarga las notificaciones al recibir un aviso en tiempo real */
+  obtenerNotificaciones().then((data) => {
+    notificaciones.value = data
+  })
+}
+
+onMounted(async () => {
+  try {
+    notificaciones.value = await obtenerNotificaciones()
+    /** Escucha notificaciones de lista de espera en tiempo real */
+    alEsperaDisponible(alNuevaEspera)
+  } catch {
+    error.value = 'No se pudieron cargar las notificaciones. Inténtalo de nuevo.'
+  } finally {
+    cargando.value = false
+  }
+})
+
+onUnmounted(() => {
+  quitarListener('espera:disponible', alNuevaEspera)
+})
     </script>
