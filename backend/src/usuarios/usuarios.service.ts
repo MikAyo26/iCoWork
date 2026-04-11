@@ -42,9 +42,25 @@ export class UsuariosService {
 
   /**
    * Devuelve todos los usuarios junto con la relación de su cliente.
+   * Usado por superadmin para ver todos los usuarios del sistema.
    */
   async buscarTodos(): Promise<Usuario[]> {
     return this.usuariosRepo.find({ relations: ['cliente'] });
+  }
+
+  /**
+   * Devuelve los usuarios de un cliente específico más los superadmins.
+   * Usado por admin para ver sus empleados y poder contactar con soporte.
+   * @param clienteId Identificador del cliente
+   */
+  async buscarPorCliente(clienteId: number): Promise<Usuario[]> {
+    return this.usuariosRepo
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.cliente', 'cliente')
+      .where('usuario.cliente_id = :clienteId', { clienteId })
+      .orWhere('usuario.rol = :rol', { rol: 'superadmin' })
+      .orderBy('usuario.rol', 'ASC')
+      .getMany();
   }
 
   /**
@@ -83,7 +99,9 @@ export class UsuariosService {
    */
   async actualizar(id: number, dto: ActualizarUsuarioDto): Promise<Usuario> {
     const usuario = await this.buscarPorId(id);
-    const { contrasena, ...resto } = dto as ActualizarUsuarioDto & { contrasena?: string };
+    const { contrasena, ...resto } = dto as ActualizarUsuarioDto & {
+      contrasena?: string;
+    };
     if (contrasena) {
       usuario.contrasenaHash = await bcrypt.hash(contrasena, 10);
     }

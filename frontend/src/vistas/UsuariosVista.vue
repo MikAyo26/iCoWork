@@ -8,6 +8,7 @@
         <p class="text-sm text-gray-400 mt-1">Gestión de usuarios del sistema</p>
       </div>
       <button
+        v-if="tieneRol('superadmin')"
         @click="abrirModalCrear"
         class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
         style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
@@ -17,8 +18,8 @@
       </button>
     </div>
 
-    <!-- Filtros por rol y por cliente -->
-    <div class="flex gap-2 flex-wrap">
+    <!-- Filtros por rol y por cliente — solo superadmin -->
+    <div v-if="tieneRol('superadmin')" class="flex gap-2 flex-wrap">
       <button
         v-for="filtro in filtrosRol"
         :key="filtro.valor"
@@ -114,19 +115,32 @@
             </td>
 
             <!-- Acciones -->
-            <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
-              <button
-                @click="abrirModalEditar(usuario)"
-                class="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                <i class="pi pi-pencil"></i>
-              </button>
-              <button
-                @click="confirmarEliminacion(usuario)"
-                class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
-              >
-                <i class="pi pi-trash"></i>
-              </button>
+            <td class="px-6 py-4 text-right">
+              <!-- Superadmin: puede editar y eliminar -->
+              <template v-if="tieneRol('superadmin')">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    @click="abrirModalEditar(usuario)"
+                    class="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button
+                    @click="confirmarEliminacion(usuario)"
+                    class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+              </template>
+
+              <!-- Admin: muestra badge de soporte para superadmins -->
+              <template v-else-if="usuario.rol === 'superadmin'">
+                <span class="text-xs text-green-600 font-medium">
+                  <i class="pi pi-headphones mr-1"></i>
+                  Soporte
+                </span>
+              </template>
             </td>
 
           </tr>
@@ -143,7 +157,7 @@
       </div>
     </div>
 
-    <!-- Modal crear usuario -->
+    <!-- Modal crear usuario — solo superadmin -->
     <div
       v-if="modalCrearVisible"
       class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
@@ -239,7 +253,7 @@
       </div>
     </div>
 
-    <!-- Modal editar usuario -->
+    <!-- Modal editar usuario — solo superadmin -->
     <div
       v-if="modalEditarVisible"
       class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
@@ -345,6 +359,9 @@ import {
   crearUsuario,
   actualizarUsuario,
 } from '../servicios/usuarios'
+import { useUsuarioActual } from '../composiciones/useUsuarioActual'
+
+const { tieneRol } = useUsuarioActual()
 
 /** Lista completa de usuarios cargados desde el backend */
 const usuarios = ref<Usuario[]>([])
@@ -505,7 +522,6 @@ async function guardarUsuario() {
 
 /**
  * Valida y envía los cambios del usuario editado al backend.
- * Solo envía los campos que han cambiado.
  * Recarga la lista tras una edición exitosa.
  */
 async function guardarEdicion() {
@@ -567,7 +583,7 @@ function etiquetaRol(rol: string): string {
   return etiquetas[rol] ?? rol
 }
 
-/** Confirma y elimina un usuario */
+/** Confirma y elimina un usuario — solo superadmin */
 async function confirmarEliminacion(usuario: Usuario) {
   if (!confirm(`¿Eliminar el usuario "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return
   try {
