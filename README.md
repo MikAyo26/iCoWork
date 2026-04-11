@@ -45,83 +45,37 @@ Aplicación web para la gestión de espacios de coworking. Permite a empresas y 
 ---
 
 ## Estructura del proyecto
+
+```
 iCoWork/
 ├── database/
 │   ├── icowork_schema.sql
 │   └── icowork_datos.sql
 ├── backend/
-│   ├── src/
-│   │   ├── auth/
-│   │   ├── clientes/
-│   │   ├── correo/
-│   │   ├── dashboard/
-│   │   ├── espacios/
-│   │   ├── events/
-│   │   ├── lista-espera/
-│   │   ├── notificaciones/
-│   │   ├── oficinas/
-│   │   ├── pagos/
-│   │   ├── planes/
-│   │   ├── reservas/
-│   │   ├── suscripciones/
-│   │   ├── usuarios/
-│   │   ├── app.module.ts
-│   │   └── main.ts
-│   ├── .env.example
-│   ├── nest-cli.json
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── componentes/
-│   │   │   └── Sidebar.vue
-│   │   ├── composiciones/
-│   │   │   ├── useSocket.ts
-│   │   │   └── useUsuarioActual.ts
-│   │   ├── diseños/
-│   │   │   ├── DiseñoApp.vue
-│   │   │   └── DiseñoAuth.vue
-│   │   ├── enrutador/
-│   │   │   └── index.ts
-│   │   ├── servicios/
-│   │   │   ├── autenticacion.ts
-│   │   │   ├── axios.ts
-│   │   │   ├── clientes.ts
-│   │   │   ├── dashboard.ts
-│   │   │   ├── espacios.ts
-│   │   │   ├── lista-espera.ts
-│   │   │   ├── notificaciones.ts
-│   │   │   ├── oficinas.ts
-│   │   │   ├── pagos.ts
-│   │   │   ├── planes.ts
-│   │   │   ├── reservas.ts
-│   │   │   ├── suscripciones.ts
-│   │   │   └── usuarios.ts
-│   │   ├── vistas/
-│   │   │   ├── ClientesVista.vue
-│   │   │   ├── DashboardVista.vue
-│   │   │   ├── EspaciosVista.vue
-│   │   │   ├── EstadisticasVista.vue
-│   │   │   ├── ListaEsperaVista.vue
-│   │   │   ├── LoginVista.vue
-│   │   │   ├── NotificacionesVista.vue
-│   │   │   ├── OficinasVista.vue
-│   │   │   ├── PagosVista.vue
-│   │   │   ├── PerfilVista.vue
-│   │   │   ├── PlanesVista.vue
-│   │   │   ├── ReservasVista.vue
-│   │   │   └── UsuariosVista.vue
-│   │   ├── App.vue
-│   │   ├── main.ts
-│   │   └── style.css
-│   ├── public/
-│   ├── .env.example
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.ts
-├── .gitignore
-└── README.md
+│   └── src/
+│       ├── auth/
+│       ├── clientes/
+│       ├── correo/
+│       ├── dashboard/
+│       ├── espacios/
+│       ├── events/
+│       ├── lista-espera/
+│       ├── notificaciones/
+│       ├── oficinas/
+│       ├── pagos/
+│       ├── planes/
+│       ├── reservas/
+│       ├── suscripciones/
+│       └── usuarios/
+└── frontend/
+    └── src/
+        ├── componentes/
+        ├── composiciones/
+        ├── diseños/
+        ├── enrutador/
+        ├── servicios/
+        └── vistas/
+```
 
 ---
 
