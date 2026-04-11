@@ -357,8 +357,8 @@ const formularioSuscripcion = reactive({
 })
 
 /**
- * Carga planes (incluyendo inactivos) y suscripciones al montar el componente.
- * Las suscripciones se cargan por cliente ya que no existe endpoint global.
+ * Carga planes (incluyendo inactivos) y todas las suscripciones al montar.
+ * Usa el nuevo endpoint global GET /suscripciones para superadmin.
  */
 onMounted(async () => {
   try {
@@ -370,20 +370,9 @@ onMounted(async () => {
   }
 
   try {
-    /**
-     * No existe endpoint global de suscripciones.
-     * Cargamos las de cada cliente conocido iterando por los IDs 1-4.
-     * TODO: añadir endpoint global GET /suscripciones en el backend
-     */
-    const ids = [1, 2, 3, 4]
-    const resultados = await Promise.allSettled(
-      ids.map((id) =>
-        instanciaAxios.get<Suscripcion[]>(`/suscripciones/cliente/${id}`)
-      )
-    )
-    suscripciones.value = resultados
-      .filter((r) => r.status === 'fulfilled')
-      .flatMap((r) => (r as PromiseFulfilledResult<{ data: Suscripcion[] }>).value.data)
+    /** Endpoint global GET /suscripciones — solo superadmin */
+    const respuesta = await instanciaAxios.get<Suscripcion[]>('/suscripciones')
+    suscripciones.value = respuesta.data
   } finally {
     cargandoSuscripciones.value = false
   }
@@ -436,7 +425,10 @@ async function guardarPlan() {
   }
 }
 
-/** Valida y envía la nueva suscripción al backend */
+/**
+ * Valida y envía la nueva suscripción al backend.
+ * Recarga la lista usando el endpoint global tras una creación exitosa.
+ */
 async function guardarSuscripcion() {
   errorModalSuscripcion.value = ''
 
@@ -452,14 +444,9 @@ async function guardarSuscripcion() {
       planId: formularioSuscripcion.planId,
       fechaInicio: formularioSuscripcion.fechaInicio || undefined,
     })
-    /** Recarga suscripciones de todos los clientes conocidos */
-    const ids = [1, 2, 3, 4]
-    const resultados = await Promise.allSettled(
-      ids.map((id) => instanciaAxios.get<Suscripcion[]>(`/suscripciones/cliente/${id}`))
-    )
-    suscripciones.value = resultados
-      .filter((r) => r.status === 'fulfilled')
-      .flatMap((r) => (r as PromiseFulfilledResult<{ data: Suscripcion[] }>).value.data)
+    /** Recarga usando endpoint global */
+    const respuesta = await instanciaAxios.get<Suscripcion[]>('/suscripciones')
+    suscripciones.value = respuesta.data
     modalCrearSuscripcionVisible.value = false
   } catch {
     errorModalSuscripcion.value = 'No se pudo crear la suscripción. El cliente puede ya tener una activa.'
@@ -480,18 +467,17 @@ async function confirmarDesactivarPlan(plan: Plan) {
   }
 }
 
-/** Confirma y cancela una suscripción */
+/**
+ * Confirma y cancela una suscripción.
+ * Recarga la lista usando el endpoint global tras la cancelación.
+ */
 async function confirmarCancelarSuscripcion(suscripcion: Suscripcion) {
   if (!confirm(`¿Cancelar la suscripción #${suscripcion.id}?`)) return
   try {
     await cancelarSuscripcion(suscripcion.id)
-    const ids = [1, 2, 3, 4]
-    const resultados = await Promise.allSettled(
-      ids.map((id) => instanciaAxios.get<Suscripcion[]>(`/suscripciones/cliente/${id}`))
-    )
-    suscripciones.value = resultados
-      .filter((r) => r.status === 'fulfilled')
-      .flatMap((r) => (r as PromiseFulfilledResult<{ data: Suscripcion[] }>).value.data)
+    /** Recarga usando endpoint global */
+    const respuesta = await instanciaAxios.get<Suscripcion[]>('/suscripciones')
+    suscripciones.value = respuesta.data
   } catch {
     alert('No se pudo cancelar la suscripción.')
   }
