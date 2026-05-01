@@ -1,16 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+// Importación de los layouts: uno para rutas públicas y otro para rutas privadas
 import DiseñoAuth from '../diseños/DiseñoAuth.vue'
 import DiseñoApp from '../diseños/DiseñoApp.vue'
 
+// Creación del enrutador con historial basado en la URL del navegador
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      // Redirección de la raíz al login por defecto
       path: '/',
       redirect: '/login',
     },
     {
-      /** Layout limpio para rutas públicas */
+      // Layout limpio para rutas públicas (solo accesibles sin sesión activa)
       path: '/',
       component: DiseñoAuth,
       meta: { soloInvitados: true },
@@ -18,12 +22,13 @@ const router = createRouter({
         {
           path: 'login',
           name: 'login',
+          // Carga diferida del componente para optimizar el rendimiento
           component: () => import('../vistas/LoginVista.vue'),
         },
       ],
     },
     {
-      /** Layout principal con sidebar para rutas privadas */
+      // Layout principal con sidebar para rutas privadas (requieren autenticación)
       path: '/',
       component: DiseñoApp,
       meta: { requiereAuth: true },
@@ -32,6 +37,7 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: () => import('../vistas/DashboardVista.vue'),
+          // Accesible por todos los roles autenticados
           meta: { roles: ['superadmin', 'admin', 'empleado'] },
         },
         {
@@ -68,6 +74,7 @@ const router = createRouter({
           path: 'usuarios',
           name: 'usuarios',
           component: () => import('../vistas/UsuariosVista.vue'),
+          // Solo accesible por superadmin y admin
           meta: { roles: ['superadmin', 'admin'] },
         },
         {
@@ -86,6 +93,7 @@ const router = createRouter({
           path: 'clientes',
           name: 'clientes',
           component: () => import('../vistas/ClientesVista.vue'),
+          // Solo accesible por superadmin
           meta: { roles: ['superadmin'] },
         },
         {
@@ -131,10 +139,12 @@ router.beforeEach((destino, _origen, siguiente) => {
   const rolesPermitidos = destino.meta.roles as string[] | undefined
   if (rolesPermitidos && token) {
     const datosUsuario = localStorage.getItem('usuario')
-    const rol = datosUsuario ? (JSON.parse(datosUsuario) as { rol: string }).rol : ''
+    const rol = datosUsuario
+      ? (JSON.parse(datosUsuario) as { rol: string }).rol
+      : ''
 
+    // Rol sin permiso → redirige al dashboard
     if (!rolesPermitidos.includes(rol)) {
-      /** Rol sin permiso → redirige al dashboard */
       return siguiente({ name: 'dashboard' })
     }
   }

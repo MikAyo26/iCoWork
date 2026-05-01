@@ -22,7 +22,12 @@ export async function obtenerEspaciosPorOficina(oficinaId: number): Promise<Espa
     return respuesta.data
 }
 
-/** Verifica la disponibilidad de un espacio en un rango horario */
+/** Verifica la disponibilidad de un espacio en un rango horario 
+ * @param espacioId ID del espacio a comprobar
+ * @param inicio Fecha y hora de inicio en formato ISO 8601
+ * @param fin Fecha y hora de fin en formato ISO 8601
+ * @returns true si el espacio está disponible en ese rango
+*/
 export async function verificarDisponibilidad(
     espacioId: number,
     inicio: string,

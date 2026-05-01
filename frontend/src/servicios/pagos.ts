@@ -21,7 +21,11 @@ export async function obtenerMisPagos(): Promise<Pago[]> {
   return respuesta.data
 }
 
-/** Confirma un pago por su ID — solo superadmin */
+/** 
+ * Confirma un pago por su ID
+ * Solo accesible por superadmin 
+ * @param id ID del pago a confirmar 
+ */
 export async function confirmarPago(id: number): Promise<Pago> {
   const respuesta = await instanciaAxios.patch<Pago>(`/pagos/${id}/confirmar`)
   return respuesta.data
