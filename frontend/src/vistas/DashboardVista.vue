@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6">
 
-    <!-- Cabecera de bienvenida -->
+    <!-- Cabecera de bienvenida con avatar, nombre, rol y fecha -->
     <div class="bg-white rounded-2xl shadow-sm p-6 flex items-center justify-between">
       <div class="flex items-center gap-4">
 
-        <!-- Avatar con iniciales del usuario -->
+        <!-- Avatar generado con las iniciales del usuario -->
         <div
           class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
           style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
@@ -13,12 +13,13 @@
           {{ iniciales }}
         </div>
 
-        <!-- Saludo personalizado con rol y fecha -->
+        <!-- Saludo personalizado con badge de rol y fecha actual -->
         <div>
           <h1 class="text-2xl font-bold text-gray-800">
             Bienvenido, {{ primerNombre }}
           </h1>
           <div class="flex items-center gap-2 mt-1">
+            <!-- Badge de color dinámico según el rol -->
             <span
               class="text-xs px-2 py-0.5 rounded-full font-medium"
               :class="badgeRol"
@@ -32,22 +33,22 @@
       </div>
     </div>
 
-    <!-- Tarjetas de resumen rápido -->
+    <!-- Tarjetas de resumen rápido — se renderizan dinámicamente según el rol -->
     <div class="flex flex-wrap justify-center gap-3">
       <div
         v-for="tarjeta in tarjetas"
         :key="tarjeta.titulo"
         class="bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3 w-52"
       >
-        <!-- Icono de la tarjeta -->
+        <!-- Icono de la tarjeta con color corporativo -->
         <div
-          class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+          class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
           :style="{ background: tarjeta.color }"
         >
           <i :class="tarjeta.icono" class="text-white text-lg"></i>
         </div>
 
-        <!-- Título y valor de la tarjeta -->
+        <!-- Título y valor numérico de la tarjeta -->
         <div>
           <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">{{ tarjeta.titulo }}</p>
           <p class="text-3xl font-bold text-gray-800 mt-1">{{ tarjeta.valor }}</p>
@@ -61,6 +62,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useUsuarioActual } from '../composiciones/useUsuarioActual'
+
+// Servicios del dashboard para obtener métricas según el rol
 import {
   obtenerMisReservas,
   obtenerEspaciosPorOficina,
@@ -69,12 +72,13 @@ import {
   obtenerResumenCliente,
 } from '../servicios/dashboard'
 
+// Datos del usuario autenticado desde el composable
 const { nombre, rol, iniciales, tieneRol, usuario } = useUsuarioActual()
 
-/** Primer nombre del usuario para el saludo */
+/** Primer nombre del usuario para el saludo personalizado */
 const primerNombre = computed(() => nombre.value.split(' ')[0])
 
-/** Fecha actual formateada en español */
+/** Fecha actual formateada en español con día, mes y año completos */
 const fechaHoy = computed(() =>
   new Date().toLocaleDateString('es-ES', {
     weekday: 'long',
@@ -84,14 +88,22 @@ const fechaHoy = computed(() =>
   })
 )
 
-/** Badge de color según el rol del usuario */
+/**
+ * Clases CSS del badge de rol, aplicadas dinámicamente según el rol del usuario.
+ * - superadmin: morado
+ * - admin: azul
+ * - empleado: gris
+ */
 const badgeRol = computed(() => ({
   'bg-purple-100 text-purple-700': rol.value === 'superadmin',
   'bg-blue-100 text-blue-700':     rol.value === 'admin',
   'bg-gray-100 text-gray-700':     rol.value === 'empleado',
 }))
 
-/** Etiqueta legible del rol */
+/**
+ * Etiqueta legible del rol para mostrar en el badge.
+ * Convierte el valor interno del rol en un texto visible para el usuario.
+ */
 const etiquetaRol = computed(() => {
   const etiquetas: Record<string, string> = {
     superadmin: 'Superadmin',
@@ -102,8 +114,8 @@ const etiquetaRol = computed(() => {
 })
 
 /**
- * Valores reactivos de las tarjetas.
- * Se inicializan con '—' y se actualizan al montar el componente.
+ * Valores reactivos de las tarjetas de resumen.
+ * Se inicializan con '—' como placeholder hasta que se carguen los datos reales.
  */
 const valores = ref({
   reservasActivas: '—',
@@ -117,11 +129,13 @@ const valores = ref({
 
 /**
  * Carga los datos reales desde el backend al montar el componente.
- * Cada petición está envuelta en try/catch para evitar que un fallo
- * bloquee el resto de tarjetas.
+ * Cada petición está envuelta en try/catch independiente para evitar
+ * que un fallo en una tarjeta bloquee la carga del resto.
+ * Las peticiones se filtran según el rol del usuario autenticado.
  */
 onMounted(async () => {
-  // Reservas activas — todos los roles
+
+  // Reservas activas — accesible por todos los roles
   try {
     const reservas = await obtenerMisReservas()
     valores.value.reservasActivas = reservas
@@ -131,7 +145,7 @@ onMounted(async () => {
     valores.value.reservasActivas = '0'
   }
 
-  // Espacios disponibles en la oficina Rambla Añaza (id: 1)
+  // Espacios activos de la oficina principal (id: 1)
   try {
     const espacios = await obtenerEspaciosPorOficina(1)
     valores.value.espaciosDisponibles = espacios
@@ -141,7 +155,7 @@ onMounted(async () => {
     valores.value.espaciosDisponibles = '0'
   }
 
-  // Notificaciones no leídas — todos los roles
+  // Notificaciones no leídas — accesible por todos los roles
   try {
     const notificaciones = await obtenerNotificaciones()
     valores.value.notificacionesNuevas = notificaciones
@@ -151,7 +165,7 @@ onMounted(async () => {
     valores.value.notificacionesNuevas = '0'
   }
 
-  // Usuarios activos del cliente — admin y superadmin
+  // Usuarios activos del cliente — solo admin y superadmin
   if (tieneRol('superadmin', 'admin')) {
     try {
       const clienteId = usuario.value?.clienteId ?? 1
@@ -162,11 +176,12 @@ onMounted(async () => {
     }
   }
 
-  // Ocupación global — solo superadmin
+  // Métricas globales — solo superadmin
   if (tieneRol('superadmin')) {
     try {
       const global = await obtenerOcupacionGlobal()
       valores.value.clientesTotales = global.length.toString()
+      // Suma de horas totales de ocupación de todos los clientes
       const horas = global.reduce((acc: number, c: any) => acc + (c.horasTotales ?? 0), 0)
       valores.value.horasOcupacion = `${horas.toFixed(0)}h`
     } catch {
@@ -177,10 +192,10 @@ onMounted(async () => {
 })
 
 /**
- * Tarjetas de resumen filtradas según el rol del usuario.
- * - Empleado: 3 tarjetas comunes
- * - Admin: 3 comunes + 2 de gestión
- * - Superadmin: todas
+ * Tarjetas de resumen filtradas y construidas según el rol del usuario.
+ * - Empleado: 3 tarjetas comunes (reservas, espacios, notificaciones)
+ * - Admin: 3 comunes + 2 de gestión (usuarios, pagos)
+ * - Superadmin: todas las anteriores + 2 globales (clientes, horas)
  */
 const tarjetas = computed(() => {
   const comunes = [

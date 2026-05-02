@@ -77,7 +77,7 @@
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
                   style="background: linear-gradient(135deg, #2d8f6f, #42b883)"
                 >
                   {{ iniciales(usuario.nombre) }}

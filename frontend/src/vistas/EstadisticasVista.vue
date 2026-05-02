@@ -1,14 +1,14 @@
 <template>
   <div class="space-y-6">
 
-    <!-- Cabecera -->
+    <!-- Cabecera con título y botón de exportación CSV -->
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-800">Estadísticas</h1>
         <p class="text-sm text-gray-400 mt-1">Análisis de ocupación y uso de espacios</p>
       </div>
 
-      <!-- Exportar CSV — admin y superadmin -->
+      <!-- Botón de exportación — visible solo para admin y superadmin -->
       <button
         v-if="tieneRol('superadmin', 'admin') && clienteId"
         @click="exportarCsv"
@@ -20,19 +20,19 @@
       </button>
     </div>
 
-    <!-- Estado de carga -->
+    <!-- Indicador de carga mientras se obtienen los datos -->
     <div v-if="cargando" class="flex justify-center py-20">
       <i class="pi pi-spin pi-spinner text-green-500 text-3xl"></i>
     </div>
 
-    <!-- Error -->
+    <!-- Mensaje de error si falla la carga de estadísticas -->
     <div v-else-if="error" class="bg-red-50 border border-red-100 rounded-xl p-6 text-center">
       <p class="text-red-500 text-sm">{{ error }}</p>
     </div>
 
     <template v-else>
 
-      <!-- Gráfica de espacios más reservados — admin y superadmin -->
+      <!-- Gráfica de barras — espacios más reservados (admin y superadmin) -->
       <div
         v-if="tieneRol('superadmin', 'admin') && datosEspacios.labels.length > 0"
         class="bg-white rounded-2xl shadow-sm p-6"
@@ -46,7 +46,7 @@
         />
       </div>
 
-      <!-- Gráfica de horas pico — solo superadmin -->
+      <!-- Gráfica de línea — franjas horarias más solicitadas (solo superadmin) -->
       <div
         v-if="tieneRol('superadmin') && datosHorasPico.labels.length > 0"
         class="bg-white rounded-2xl shadow-sm p-6"
@@ -60,7 +60,7 @@
         />
       </div>
 
-      <!-- Gráfica ocupación global — solo superadmin -->
+      <!-- Gráfica de dona — ocupación global por cliente (solo superadmin) -->
       <div
         v-if="tieneRol('superadmin') && datosOcupacion.labels.length > 0"
         class="bg-white rounded-2xl shadow-sm p-6"
@@ -74,7 +74,7 @@
         />
       </div>
 
-      <!-- Tabla de asistencia — admin y superadmin -->
+      <!-- Tabla de asistencia de empleados (admin y superadmin) -->
       <div
         v-if="tieneRol('superadmin', 'admin') && asistencia.length > 0"
         class="bg-white rounded-2xl shadow-sm overflow-hidden"
@@ -98,6 +98,7 @@
               class="hover:bg-gray-50 transition-colors"
             >
               <td class="px-6 py-4 font-medium text-gray-800">{{ empleado.nombre }}</td>
+              <!-- Muestra '—' si el empleado no tiene departamento asignado -->
               <td class="px-6 py-4 text-gray-500 text-xs">{{ empleado.departamento ?? '—' }}</td>
               <td class="px-6 py-4 text-gray-700">{{ empleado.totalReservas }}</td>
               <td class="px-6 py-4 text-gray-700">{{ empleado.horasTotales }}h</td>
@@ -106,7 +107,7 @@
         </table>
       </div>
 
-      <!-- Sin datos -->
+      <!-- Mensaje informativo para empleados sin acceso a estadísticas -->
       <div
         v-if="!tieneRol('superadmin', 'admin')"
         class="text-center py-20 text-gray-400"
@@ -128,16 +129,16 @@ import instanciaAxios from '../servicios/axios'
 
 const { tieneRol, usuario } = useUsuarioActual()
 
-/** ID del cliente del usuario autenticado */
+/** ID del cliente del usuario autenticado — null para superadmin sin cliente asignado */
 const clienteId = computed(() => usuario.value?.clienteId ?? null)
 
-/** Estado de carga */
+/** Indica si la carga inicial está en curso */
 const cargando = ref(true)
 
-/** Mensaje de error */
+/** Mensaje de error general de la vista */
 const error = ref('')
 
-/** Datos de asistencia de empleados */
+/** Datos de asistencia de empleados para la tabla */
 const asistencia = ref<{
   usuarioId: number
   nombre: string
@@ -146,16 +147,16 @@ const asistencia = ref<{
   horasTotales: number
 }[]>([])
 
-/** Datos para la gráfica de espacios más reservados */
+/** Datos para la gráfica de barras de espacios más reservados */
 const datosEspacios = ref<{ labels: string[]; datasets: object[] }>({ labels: [], datasets: [] })
 
-/** Datos para la gráfica de horas pico */
+/** Datos para la gráfica de línea de horas pico */
 const datosHorasPico = ref<{ labels: string[]; datasets: object[] }>({ labels: [], datasets: [] })
 
-/** Datos para la gráfica de ocupación global */
+/** Datos para la gráfica de dona de ocupación global */
 const datosOcupacion = ref<{ labels: string[]; datasets: object[] }>({ labels: [], datasets: [] })
 
-/** Opciones comunes para gráficas de barras */
+/** Opciones de Chart.js para la gráfica de barras */
 const opcionesBarras = {
   responsive: true,
   maintainAspectRatio: false,
@@ -165,7 +166,7 @@ const opcionesBarras = {
   },
 }
 
-/** Opciones para gráfica de línea */
+/** Opciones de Chart.js para la gráfica de línea de horas pico */
 const opcionesLinea = {
   responsive: true,
   maintainAspectRatio: false,
@@ -176,15 +177,21 @@ const opcionesLinea = {
   },
 }
 
-/** Opciones para gráfica de dona */
+/** Opciones de Chart.js para la gráfica de dona */
 const opcionesDona = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: { legend: { position: 'right' } },
 }
 
-/** Carga todos los datos de estadísticas al montar el componente */
+/**
+ * Carga todos los datos de estadísticas al montar el componente.
+ * Si el usuario no tiene rol admin o superadmin, finaliza sin cargar datos.
+ * Las peticiones al dashboard de horas pico y ocupación global
+ * solo se ejecutan si el usuario es superadmin.
+ */
 onMounted(async () => {
+  // Si el usuario no tiene permisos, no cargar datos
   if (!tieneRol('superadmin', 'admin')) {
     cargando.value = false
     return
@@ -193,7 +200,7 @@ onMounted(async () => {
   try {
     const id = clienteId.value ?? 1
 
-    /** Resumen de espacios más reservados */
+    // Espacios más reservados del cliente
     const resumen = await instanciaAxios.get(`/dashboard/cliente/${id}`)
     const espacios = resumen.data.masReservados ?? []
     datosEspacios.value = {
@@ -206,12 +213,14 @@ onMounted(async () => {
       }],
     }
 
-    /** Asistencia de empleados */
+    // Asistencia de empleados del cliente
     const respAsistencia = await instanciaAxios.get(`/dashboard/cliente/${id}/asistencia`)
     asistencia.value = respAsistencia.data
 
-    /** Horas pico y ocupación global — solo superadmin */
+    // Horas pico y ocupación global — solo para superadmin
     if (tieneRol('superadmin')) {
+
+      // Franjas horarias con más reservas
       const respHoras = await instanciaAxios.get('/dashboard/horas-pico')
       const horas = respHoras.data ?? []
       datosHorasPico.value = {
@@ -226,6 +235,7 @@ onMounted(async () => {
         }],
       }
 
+      // Ocupación global por cliente con colores diferenciados
       const respGlobal = await instanciaAxios.get('/dashboard/global')
       const global = respGlobal.data ?? []
       const colores = ['#42b883', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4']
@@ -233,6 +243,7 @@ onMounted(async () => {
         labels: global.map((c: any) => c.nombreCliente),
         datasets: [{
           data: global.map((c: any) => c.horasTotales),
+          // Asigna colores cíclicamente si hay más clientes que colores definidos
           backgroundColor: global.map((_: any, i: number) => colores[i % colores.length]),
         }],
       }
@@ -244,7 +255,11 @@ onMounted(async () => {
   }
 })
 
-/** Descarga el CSV del cliente */
+/**
+ * Descarga el CSV de estadísticas del cliente mediante una petición Blob.
+ * Crea un enlace temporal en el DOM para forzar la descarga del archivo
+ * y lo elimina tras usarlo.
+ */
 async function exportarCsv() {
   try {
     const id = clienteId.value ?? 1
@@ -252,11 +267,13 @@ async function exportarCsv() {
       `/dashboard/cliente/${id}/exportar`,
       { responseType: 'blob' }
     )
+    // Crear URL temporal para el archivo descargado
     const url = URL.createObjectURL(new Blob([respuesta.data]))
     const enlace = document.createElement('a')
     enlace.href = url
     enlace.download = `estadisticas_cliente_${id}.csv`
     enlace.click()
+    // Liberar la URL temporal tras la descarga
     URL.revokeObjectURL(url)
   } catch {
     alert('No se pudo exportar el CSV.')
