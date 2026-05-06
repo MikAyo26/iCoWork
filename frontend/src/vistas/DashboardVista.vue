@@ -64,13 +64,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useUsuarioActual } from '../composiciones/useUsuarioActual'
 
 // Servicios del dashboard para obtener métricas según el rol
-import {
-  obtenerMisReservas,
-  obtenerEspaciosPorOficina,
-  obtenerNotificaciones,
-  obtenerOcupacionGlobal,
-  obtenerResumenCliente,
-} from '../servicios/dashboard'
+import { obtenerOcupacionGlobal, obtenerResumenCliente } from '../servicios/dashboard'
+import { obtenerMisReservas } from '../servicios/reservas'
+import { obtenerEspaciosPorOficina } from '../servicios/espacios'
+import { obtenerNotificaciones } from '../servicios/notificaciones'
 
 // Datos del usuario autenticado desde el composable
 const { nombre, rol, iniciales, tieneRol, usuario } = useUsuarioActual()
