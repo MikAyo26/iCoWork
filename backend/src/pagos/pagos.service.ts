@@ -105,8 +105,29 @@ export class PagosService {
   }
 
   /**
-   * Calcula las estadísticas de pagos completados de un cliente.
-   * Devuelve el total pagado y el número total de pagos.
+   * Calcula las estadísticas globales de todos los pagos completados del sistema.
+   * Usado por superadmin para ver el total global sin filtrar por cliente.
+   */
+  async estadisticasGlobales(): Promise<{
+    totalPagado: number;
+    totalPagos: number;
+  }> {
+    const result = await this.pagosRepo
+      .createQueryBuilder('p')
+      .where("p.estado = 'completado'")
+      .select('SUM(p.importe)', 'totalPagado')
+      .addSelect('COUNT(p.id)', 'totalPagos')
+      .getRawOne<{ totalPagado: string; totalPagos: string }>();
+
+    return {
+      totalPagado: parseFloat(result?.totalPagado ?? '0'),
+      totalPagos: parseInt(result?.totalPagos ?? '0', 10),
+    };
+  }
+
+  /**
+   * Calcula las estadísticas de pagos completados de un cliente específico.
+   * Devuelve el total pagado y el número total de pagos del cliente.
    * @param clienteId Identificador del cliente
    */
   async estadisticasPorCliente(clienteId: number): Promise<{

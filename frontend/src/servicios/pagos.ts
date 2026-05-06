@@ -45,3 +45,12 @@ export async function obtenerTodosLosPagos(): Promise<Pago[]> {
   const respuesta = await instanciaAxios.get<Pago[]>('/pagos')
   return respuesta.data
 }
+
+/** Obtiene estadísticas globales de todos los pagos — solo superadmin */
+export async function obtenerEstadisticasGlobales(): Promise<{
+  totalPagado: number
+  totalPagos: number
+}> {
+  const respuesta = await instanciaAxios.get('/pagos/estadisticas')
+  return respuesta.data
+}

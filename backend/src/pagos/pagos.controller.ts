@@ -46,6 +46,16 @@ export class PagosController {
   }
 
   /**
+   * GET /api/pagos/estadisticas — superadmin
+   * Devuelve estadísticas globales de todos los pagos del sistema.
+   */
+  @Roles('superadmin')
+  @Get('estadisticas')
+  estadisticasGlobales() {
+    return this.pagosService.estadisticasGlobales();
+  }
+
+  /**
    * PATCH /api/pagos/:id/confirmar — superadmin
    * Confirma un pago pendiente y envía email de confirmación.
    */

@@ -150,7 +150,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { type Pago, obtenerMisPagos, confirmarPago, obtenerEstadisticasPagos, obtenerTodosLosPagos } from '../servicios/pagos'
+import { type Pago, obtenerMisPagos, confirmarPago, obtenerEstadisticasPagos, obtenerTodosLosPagos, obtenerEstadisticasGlobales } from '../servicios/pagos'
 import { useUsuarioActual } from '../composiciones/useUsuarioActual'
 
 const { tieneRol, usuario } = useUsuarioActual()
@@ -188,17 +188,16 @@ const pagosFiltrados = computed(() => {
 /** Carga los pagos y estadísticas al montar el componente */
 onMounted(async () => {
   try {
-    /** Superadmin usa endpoint global, el resto usa mis-pagos */
     if (tieneRol('superadmin')) {
+      /** Superadmin usa endpoints globales */
       pagos.value = await obtenerTodosLosPagos()
+      estadisticas.value = await obtenerEstadisticasGlobales()
     } else {
+      /** Admin y empleado usan sus propios pagos */
       pagos.value = await obtenerMisPagos()
-    }
-
-    if (tieneRol('superadmin', 'admin') && usuario.value?.clienteId) {
-      estadisticas.value = await obtenerEstadisticasPagos(usuario.value.clienteId)
-    } else if (tieneRol('superadmin')) {
-      estadisticas.value = await obtenerEstadisticasPagos(1)
+      if (tieneRol('admin') && usuario.value?.clienteId) {
+        estadisticas.value = await obtenerEstadisticasPagos(usuario.value.clienteId)
+      }
     }
   } catch {
     error.value = 'No se pudieron cargar los pagos. Inténtalo de nuevo.'
