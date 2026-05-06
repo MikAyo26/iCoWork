@@ -11,7 +11,7 @@ import { CorreoService } from './correo.service';
       useFactory: (config: ConfigService) => ({
         transport: {
           host: 'smtp.resend.com',
-          port: 465,
+          port: 587,
           secure: true,
           auth: {
             user: 'resend',
