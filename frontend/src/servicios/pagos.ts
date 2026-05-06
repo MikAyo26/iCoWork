@@ -39,3 +39,9 @@ export async function obtenerEstadisticasPagos(clienteId: number): Promise<{
   const respuesta = await instanciaAxios.get(`/pagos/cliente/${clienteId}/estadisticas`)
   return respuesta.data
 }
+
+/** Obtiene todos los pagos del sistema — solo superadmin */
+export async function obtenerTodosLosPagos(): Promise<Pago[]> {
+  const respuesta = await instanciaAxios.get<Pago[]>('/pagos')
+  return respuesta.data
+}
