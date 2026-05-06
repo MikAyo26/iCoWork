@@ -380,3 +380,16 @@ El servidor expone un namespace `/ws` autenticado con JWT. Eventos disponibles:
 
 **Tutor:** José David Díaz Díaz  
 **Centro:** C.I.F.P. Cesar Manrique — C.F.G.S. Desarrollo de Aplicaciones Web
+
+## Licencia
+
+© 2026 Juan José De Abreu Alvarez / Ayoze Pestano De la Rosa.
+
+Este proyecto está bajo una licencia Creative Commons 
+Atribución-NoComercial-SinDerivadas 4.0 Internacional (CC BY-NC-ND 4.0).
+
+Queda permitido descargar y compartir este trabajo siempre que se mencione 
+a los autores originales. Queda expresamente prohibido modificar, usar 
+comercialmente o distribuir sin mencionar a los autores.
+
+[![CC BY-NC-ND 4.0](https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.es)
