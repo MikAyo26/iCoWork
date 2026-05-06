@@ -21,7 +21,7 @@ export interface EntradaListaEspera {
 
 /** Obtiene las entradas de lista de espera del usuario autenticado */
 export async function obtenerMiListaEspera(): Promise<EntradaListaEspera[]> {
-    const respuesta = await instanciaAxios.get<EntradaListaEspera[]>('/lista-espera')
+    const respuesta = await instanciaAxios.get<EntradaListaEspera[]>('/lista-espera/mia')
     return respuesta.data
 }
 
