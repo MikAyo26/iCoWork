@@ -1,18 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import { ConfigService } from '@nestjs/config';
+import { Resend } from 'resend';
 
 @Injectable()
 export class CorreoService {
   private readonly logger = new Logger(CorreoService.name);
+  private readonly resend: Resend;
+  private readonly from: string;
 
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(private readonly config: ConfigService) {
+    this.resend = new Resend(this.config.get<string>('RESEND_API_KEY'));
+    this.from = this.config.get<string>(
+      'MAIL_FROM',
+      'iCoWork <onboarding@resend.dev>',
+    );
+  }
 
   async enviarConfirmacionPago(
     destinatario: { nombre: string; correo: string },
     pago: { id: number; importe: number; moneda: string; pagadoEn: Date },
   ): Promise<void> {
     try {
-      await this.mailerService.sendMail({
+      const { error } = await this.resend.emails.send({
+        from: this.from,
         to: destinatario.correo,
         subject: `iCoWork — Confirmación de pago #${pago.id}`,
         html: `
@@ -27,8 +37,17 @@ export class CorreoService {
           <p>Gracias por usar iCoWork.</p>
         `,
       });
+      if (error) {
+        this.logger.error(
+          `Error enviando email de pago a ${destinatario.correo}: ${error.message}`,
+        );
+      } else {
+        this.logger.log(`Email de pago enviado a ${destinatario.correo}`);
+      }
     } catch (error) {
-      this.logger.error(`Error enviando email de pago a ${destinatario.correo}: ${error}`);
+      this.logger.error(
+        `Error enviando email de pago a ${destinatario.correo}: ${error}`,
+      );
     }
   }
 
@@ -37,7 +56,8 @@ export class CorreoService {
     reserva: { id: number; espacioNombre: string; inicio: Date; fin: Date },
   ): Promise<void> {
     try {
-      await this.mailerService.sendMail({
+      const { error } = await this.resend.emails.send({
+        from: this.from,
         to: destinatario.correo,
         subject: `iCoWork — Reserva confirmada #${reserva.id}`,
         html: `
@@ -52,8 +72,17 @@ export class CorreoService {
           <p>Gracias por usar iCoWork.</p>
         `,
       });
+      if (error) {
+        this.logger.error(
+          `Error enviando email de reserva a ${destinatario.correo}: ${error.message}`,
+        );
+      } else {
+        this.logger.log(`Email de reserva enviado a ${destinatario.correo}`);
+      }
     } catch (error) {
-      this.logger.error(`Error enviando email de reserva a ${destinatario.correo}: ${error}`);
+      this.logger.error(
+        `Error enviando email de reserva a ${destinatario.correo}: ${error}`,
+      );
     }
   }
 }
