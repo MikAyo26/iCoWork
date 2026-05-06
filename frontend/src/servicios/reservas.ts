@@ -23,7 +23,10 @@ export interface Reserva {
     }
 }
 
-/** Datos necesarios para crear una reserva */
+/** Datos necesarios para crear una reserva 
+ * Si se indica tipoRecurrencia distinto de 'ninguna',
+ * se generan automáticamente todas las reservas de la serie.
+*/
 export interface CrearReservaDto {
     espacioId: number
     inicio: string

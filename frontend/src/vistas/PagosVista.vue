@@ -7,6 +7,16 @@
         <h1 class="text-2xl font-bold text-gray-800">Pagos</h1>
         <p class="text-sm text-gray-400 mt-1">Historial de pagos y transacciones</p>
       </div>
+      <!-- Botón nuevo pago — solo admin -->
+      <button
+        v-if="tieneRol('admin')"
+        @click="abrirModalNuevoPago"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+        style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
+      >
+        <i class="pi pi-plus"></i>
+        Nuevo pago
+      </button>
     </div>
 
     <!-- Tarjetas de estadísticas — solo admin y superadmin -->
@@ -145,20 +155,113 @@
       </div>
     </div>
 
+    <!-- Modal nuevo pago — solo admin -->
+    <div
+      v-if="modalNuevoPagoVisible"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+      @click.self="modalNuevoPagoVisible = false"
+    >
+      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+        <h2 class="text-lg font-bold text-gray-800">Nuevo pago</h2>
+
+        <!-- Selector de usuario -->
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</label>
+          <select
+            v-model.number="formularioPago.usuarioId"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          >
+            <option value="" disabled>Selecciona un usuario</option>
+            <option
+              v-for="u in usuariosCliente"
+              :key="u.id"
+              :value="u.id"
+            >
+              {{ u.nombre }} — {{ u.correo }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Importe -->
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Importe (€)</label>
+          <input
+            v-model.number="formularioPago.importe"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <!-- Método de pago -->
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Método de pago</label>
+          <select
+            v-model="formularioPago.metodo"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          >
+            <option value="tarjeta">Tarjeta</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <!-- Referencia externa -->
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Referencia externa</label>
+          <input
+            v-model="formularioPago.referenciaExterna"
+            type="text"
+            placeholder="Opcional"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+
+        <div v-if="errorModalPago" class="bg-red-50 border border-red-100 rounded-lg p-3">
+          <p class="text-red-500 text-xs">{{ errorModalPago }}</p>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button
+            @click="modalNuevoPagoVisible = false"
+            class="flex-1 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="guardarPago"
+            :disabled="guardandoPago"
+            class="flex-1 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style="background: linear-gradient(135deg, #2d8f6f 0%, #42b883 100%)"
+          >
+            <i v-if="guardandoPago" class="pi pi-spin pi-spinner mr-1"></i>
+            {{ guardandoPago ? 'Guardando...' : 'Registrar pago' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { type Pago, obtenerMisPagos, confirmarPago, obtenerEstadisticasPagos, obtenerTodosLosPagos, obtenerEstadisticasGlobales } from '../servicios/pagos'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { type Pago, obtenerMisPagos, confirmarPago, obtenerEstadisticasPagos, obtenerTodosLosPagos, obtenerEstadisticasGlobales, registrarPago } from '../servicios/pagos'
+import { type Usuario, obtenerUsuarios } from '../servicios/usuarios'
 import { useUsuarioActual } from '../composiciones/useUsuarioActual'
 
 const { tieneRol, usuario } = useUsuarioActual()
 
-/** Lista de pagos del usuario */
+/** Lista de pagos */
 const pagos = ref<Pago[]>([])
 
-/** Estadísticas de pagos del cliente */
+/** Usuarios del cliente para el selector del modal */
+const usuariosCliente = ref<Usuario[]>([])
+
+/** Estadísticas de pagos */
 const estadisticas = ref({ totalPagado: 0, totalPagos: 0 })
 
 /** Estado de carga */
@@ -166,6 +269,23 @@ const cargando = ref(true)
 
 /** Mensaje de error general */
 const error = ref('')
+
+/** Controla la visibilidad del modal de nuevo pago */
+const modalNuevoPagoVisible = ref(false)
+
+/** Indica si hay una petición de guardado en curso */
+const guardandoPago = ref(false)
+
+/** Mensaje de error del modal */
+const errorModalPago = ref('')
+
+/** Datos reactivos del formulario de nuevo pago */
+const formularioPago = reactive({
+  usuarioId: '' as number | '',
+  importe: 0,
+  metodo: 'tarjeta',
+  referenciaExterna: '',
+})
 
 /** Filtro activo por estado */
 const filtroActivo = ref('todos')
@@ -189,14 +309,17 @@ const pagosFiltrados = computed(() => {
 onMounted(async () => {
   try {
     if (tieneRol('superadmin')) {
-      /** Superadmin usa endpoints globales */
       pagos.value = await obtenerTodosLosPagos()
       estadisticas.value = await obtenerEstadisticasGlobales()
     } else {
-      /** Admin y empleado usan sus propios pagos */
       pagos.value = await obtenerMisPagos()
       if (tieneRol('admin') && usuario.value?.clienteId) {
         estadisticas.value = await obtenerEstadisticasPagos(usuario.value.clienteId)
+        /** Carga usuarios del cliente para el selector del modal */
+        const todosUsuarios = await obtenerUsuarios()
+        usuariosCliente.value = todosUsuarios.filter(
+          (u) => u.rol !== 'superadmin'
+        )
       }
     }
   } catch {
@@ -205,6 +328,46 @@ onMounted(async () => {
     cargando.value = false
   }
 })
+
+/** Abre el modal limpiando el formulario */
+function abrirModalNuevoPago() {
+  formularioPago.usuarioId = ''
+  formularioPago.importe = 0
+  formularioPago.metodo = 'tarjeta'
+  formularioPago.referenciaExterna = ''
+  errorModalPago.value = ''
+  modalNuevoPagoVisible.value = true
+}
+
+/** Valida y registra el nuevo pago */
+async function guardarPago() {
+  errorModalPago.value = ''
+
+  if (!formularioPago.usuarioId || formularioPago.importe <= 0) {
+    errorModalPago.value = 'Usuario e importe son obligatorios'
+    return
+  }
+
+  guardandoPago.value = true
+  try {
+    await registrarPago({
+      usuarioId: formularioPago.usuarioId as number,
+      importe: formularioPago.importe,
+      moneda: 'EUR',
+      metodo: formularioPago.metodo,
+      referenciaExterna: formularioPago.referenciaExterna || undefined,
+    })
+    pagos.value = await obtenerMisPagos()
+    if (usuario.value?.clienteId) {
+      estadisticas.value = await obtenerEstadisticasPagos(usuario.value.clienteId)
+    }
+    modalNuevoPagoVisible.value = false
+  } catch {
+    errorModalPago.value = 'No se pudo registrar el pago.'
+  } finally {
+    guardandoPago.value = false
+  }
+}
 
 /** Confirma un pago pendiente y recarga la lista */
 async function confirmar(pago: Pago) {
