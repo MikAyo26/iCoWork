@@ -10,15 +10,16 @@ import { CorreoService } from './correo.service';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         transport: {
-          host: config.get<string>('MAIL_HOST', 'localhost'),
-          port: parseInt(config.get<string>('MAIL_PORT', '587'), 10),
+          host: 'smtp.resend.com',
+          port: 465,
+          secure: true,
           auth: {
-            user: config.get<string>('MAIL_USER'),
-            pass: config.get<string>('MAIL_PASS'),
+            user: 'resend',
+            pass: config.get<string>('RESEND_API_KEY'),
           },
         },
         defaults: {
-          from: config.get<string>('MAIL_FROM', 'iCoWork <noreply@icowork.com>'),
+          from: config.get<string>('MAIL_FROM', 'iCoWork <onboarding@resend.dev>'),
         },
       }),
     }),
