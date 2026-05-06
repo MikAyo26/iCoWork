@@ -63,12 +63,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useUsuarioActual } from '../composiciones/useUsuarioActual'
 
-import { obtenerOcupacionGlobal, obtenerResumenCliente } from '../servicios/dashboard'
+import { obtenerOcupacionGlobal } from '../servicios/dashboard'
 import { obtenerMisReservas } from '../servicios/reservas'
 import { obtenerEspaciosPorOficina } from '../servicios/espacios'
 import { obtenerNotificaciones } from '../servicios/notificaciones'
 import { obtenerEstadisticasGlobales, obtenerEstadisticasPagos } from '../servicios/pagos'
 import { obtenerClientes } from '../servicios/clientes'
+import { obtenerUsuarios } from '../servicios/usuarios'
 
 const { nombre, rol, iniciales, tieneRol, usuario } = useUsuarioActual()
 
@@ -182,16 +183,17 @@ onMounted(async () => {
     valores.value.notificacionesNuevas = '0'
   }
 
-  // Usuarios activos del cliente — solo admin y superadmin
-  if (tieneRol('superadmin', 'admin')) {
-    try {
-      const clienteId = usuario.value?.clienteId ?? 1
-      const resumen = await obtenerResumenCliente(clienteId)
-      valores.value.usuariosActivos = resumen.usuariosActivos?.toString() ?? '0'
-    } catch {
-      valores.value.usuariosActivos = '0'
-    }
+ // Usuarios activos del cliente — solo admin y superadmin
+if (tieneRol('superadmin', 'admin')) {
+  try {
+    const usuarios = await obtenerUsuarios()
+    valores.value.usuariosActivos = usuarios
+      .filter((u: any) => u.activo && u.rol !== 'superadmin')
+      .length.toString()
+  } catch {
+    valores.value.usuariosActivos = '0'
   }
+}
 
   // Pagos este mes — superadmin usa estadísticas globales, admin usa las de su cliente
   if (tieneRol('superadmin')) {
