@@ -68,6 +68,7 @@ import { obtenerOcupacionGlobal, obtenerResumenCliente } from '../servicios/dash
 import { obtenerMisReservas } from '../servicios/reservas'
 import { obtenerEspaciosPorOficina } from '../servicios/espacios'
 import { obtenerNotificaciones } from '../servicios/notificaciones'
+import { obtenerEstadisticasGlobales, obtenerEstadisticasPagos } from '../servicios/pagos'
 
 // Datos del usuario autenticado desde el composable
 const { nombre, rol, iniciales, tieneRol, usuario } = useUsuarioActual()
@@ -170,6 +171,23 @@ onMounted(async () => {
       valores.value.usuariosActivos = resumen.usuariosActivos?.toString() ?? '0'
     } catch {
       valores.value.usuariosActivos = '0'
+    }
+  }
+
+  // Pagos este mes — superadmin usa estadísticas globales, admin usa las de su cliente
+  if (tieneRol('superadmin')) {
+    try {
+      const estadisticas = await obtenerEstadisticasGlobales()
+      valores.value.pagosEsteMes = `${Number(estadisticas.totalPagado).toFixed(2)}€`
+    } catch {
+      valores.value.pagosEsteMes = '0€'
+    }
+  } else if (tieneRol('admin') && usuario.value?.clienteId) {
+    try {
+      const estadisticas = await obtenerEstadisticasPagos(usuario.value.clienteId)
+      valores.value.pagosEsteMes = `${Number(estadisticas.totalPagado).toFixed(2)}€`
+    } catch {
+      valores.value.pagosEsteMes = '0€'
     }
   }
 
