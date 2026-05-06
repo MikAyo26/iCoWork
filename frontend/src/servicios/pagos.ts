@@ -54,3 +54,15 @@ export async function obtenerEstadisticasGlobales(): Promise<{
   const respuesta = await instanciaAxios.get('/pagos/estadisticas')
   return respuesta.data
 }
+
+/** Registra un nuevo pago — solo admin */
+export async function registrarPago(dto: {
+  usuarioId: number
+  importe: number
+  moneda?: string
+  metodo?: string
+  referenciaExterna?: string
+}): Promise<Pago> {
+  const respuesta = await instanciaAxios.post<Pago>('/pagos', dto)
+  return respuesta.data
+}
