@@ -63,14 +63,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useUsuarioActual } from '../composiciones/useUsuarioActual'
 
-// Servicios del dashboard para obtener métricas según el rol
 import { obtenerOcupacionGlobal, obtenerResumenCliente } from '../servicios/dashboard'
 import { obtenerMisReservas } from '../servicios/reservas'
 import { obtenerEspaciosPorOficina } from '../servicios/espacios'
 import { obtenerNotificaciones } from '../servicios/notificaciones'
 import { obtenerEstadisticasGlobales, obtenerEstadisticasPagos } from '../servicios/pagos'
+import { obtenerClientes } from '../servicios/clientes'
 
-// Datos del usuario autenticado desde el composable
 const { nombre, rol, iniciales, tieneRol, usuario } = useUsuarioActual()
 
 /** Primer nombre del usuario para el saludo personalizado */
@@ -88,9 +87,6 @@ const fechaHoy = computed(() =>
 
 /**
  * Clases CSS del badge de rol, aplicadas dinámicamente según el rol del usuario.
- * - superadmin: morado
- * - admin: azul
- * - empleado: gris
  */
 const badgeRol = computed(() => ({
   'bg-purple-100 text-purple-700': rol.value === 'superadmin',
@@ -100,7 +96,6 @@ const badgeRol = computed(() => ({
 
 /**
  * Etiqueta legible del rol para mostrar en el badge.
- * Convierte el valor interno del rol en un texto visible para el usuario.
  */
 const etiquetaRol = computed(() => {
   const etiquetas: Record<string, string> = {
@@ -113,7 +108,6 @@ const etiquetaRol = computed(() => {
 
 /**
  * Valores reactivos de las tarjetas de resumen.
- * Se inicializan con '—' como placeholder hasta que se carguen los datos reales.
  */
 const valores = ref({
   reservasActivas: '—',
@@ -126,10 +120,35 @@ const valores = ref({
 })
 
 /**
+ * Tarjetas de resumen filtradas y construidas según el rol del usuario.
+ * - Empleado: 3 tarjetas comunes
+ * - Admin: 3 comunes + 2 de gestión
+ * - Superadmin: todas las anteriores + 2 globales
+ */
+const tarjetas = computed(() => {
+  const comunes = [
+    { titulo: 'Mis reservas activas',  valor: valores.value.reservasActivas,     icono: 'pi pi-calendar-plus', color: 'linear-gradient(135deg, #2d8f6f, #42b883)' },
+    { titulo: 'Espacios disponibles',  valor: valores.value.espaciosDisponibles,  icono: 'pi pi-building',      color: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+    { titulo: 'Notificaciones nuevas', valor: valores.value.notificacionesNuevas, icono: 'pi pi-bell',          color: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+  ]
+
+  const admin = [
+    { titulo: 'Usuarios activos', valor: valores.value.usuariosActivos, icono: 'pi pi-users',       color: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
+    { titulo: 'Pagos este mes',   valor: valores.value.pagosEsteMes,    icono: 'pi pi-credit-card', color: 'linear-gradient(135deg, #10b981, #34d399)' },
+  ]
+
+  const superadmin = [
+    { titulo: 'Clientes totales',   valor: valores.value.clientesTotales, icono: 'pi pi-briefcase', color: 'linear-gradient(135deg, #ef4444, #f87171)' },
+    { titulo: 'Horas de ocupación', valor: valores.value.horasOcupacion,  icono: 'pi pi-clock',     color: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+  ]
+
+  if (tieneRol('superadmin')) return [...comunes, ...admin, ...superadmin]
+  if (tieneRol('admin'))      return [...comunes, ...admin]
+  return comunes
+})
+
+/**
  * Carga los datos reales desde el backend al montar el componente.
- * Cada petición está envuelta en try/catch independiente para evitar
- * que un fallo en una tarjeta bloquee la carga del resto.
- * Las peticiones se filtran según el rol del usuario autenticado.
  */
 onMounted(async () => {
 
@@ -195,42 +214,18 @@ onMounted(async () => {
   if (tieneRol('superadmin')) {
     try {
       const global = await obtenerOcupacionGlobal()
-      valores.value.clientesTotales = global.length.toString()
-      // Suma de horas totales de ocupación de todos los clientes
       const horas = global.reduce((acc: number, c: any) => acc + (c.horasTotales ?? 0), 0)
       valores.value.horasOcupacion = `${horas.toFixed(0)}h`
     } catch {
-      valores.value.clientesTotales = '0'
       valores.value.horasOcupacion = '0h'
     }
+
+    try {
+      const clientes = await obtenerClientes()
+      valores.value.clientesTotales = clientes.length.toString()
+    } catch {
+      valores.value.clientesTotales = '0'
+    }
   }
-})
-
-/**
- * Tarjetas de resumen filtradas y construidas según el rol del usuario.
- * - Empleado: 3 tarjetas comunes (reservas, espacios, notificaciones)
- * - Admin: 3 comunes + 2 de gestión (usuarios, pagos)
- * - Superadmin: todas las anteriores + 2 globales (clientes, horas)
- */
-const tarjetas = computed(() => {
-  const comunes = [
-    { titulo: 'Mis reservas activas',  valor: valores.value.reservasActivas,     icono: 'pi pi-calendar-plus', color: 'linear-gradient(135deg, #2d8f6f, #42b883)' },
-    { titulo: 'Espacios disponibles',  valor: valores.value.espaciosDisponibles,  icono: 'pi pi-building',      color: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
-    { titulo: 'Notificaciones nuevas', valor: valores.value.notificacionesNuevas, icono: 'pi pi-bell',          color: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
-  ]
-
-  const admin = [
-    { titulo: 'Usuarios activos', valor: valores.value.usuariosActivos, icono: 'pi pi-users',       color: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
-    { titulo: 'Pagos este mes',   valor: valores.value.pagosEsteMes,    icono: 'pi pi-credit-card', color: 'linear-gradient(135deg, #10b981, #34d399)' },
-  ]
-
-  const superadmin = [
-    { titulo: 'Clientes totales',   valor: valores.value.clientesTotales, icono: 'pi pi-briefcase', color: 'linear-gradient(135deg, #ef4444, #f87171)' },
-    { titulo: 'Horas de ocupación', valor: valores.value.horasOcupacion,  icono: 'pi pi-clock',     color: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
-  ]
-
-  if (tieneRol('superadmin')) return [...comunes, ...admin, ...superadmin]
-  if (tieneRol('admin'))      return [...comunes, ...admin]
-  return comunes
 })
 </script>
