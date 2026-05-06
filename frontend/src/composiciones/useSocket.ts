@@ -30,7 +30,7 @@ export function useSocket() {
       // Envía el token JWT como credencial de autenticación
       auth: { token: `Bearer ${token}` },
       // Fuerza el uso del WebSocket nativo, sin fallback a polling
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     })
 
     //Evento de conexión establecida
