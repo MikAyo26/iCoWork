@@ -23,14 +23,14 @@ import { DashboardModule } from './dashboard/dashboard.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'mysql',
-        host: config.get<string>('DB_HOST'),
-        port: parseInt(config.get<string>('DB_PORT', '3306'), 10),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
-        entities: [__dirname + '/**/*.entidad{.ts,.js}'],
-        synchronize: false,
+        type: 'mysql', //Motor de BBDD
+        host: config.get<string>('DB_HOST'), //Lee del .env
+        port: parseInt(config.get<string>('DB_PORT', '3306'), 10), //Puerto Mysql
+        username: config.get<string>('DB_USER'), // Usuario BBDD
+        password: config.get<string>('DB_PASSWORD'), // Pass BBDD
+        database: config.get<string>('DB_NAME'), // Nombre BBDD
+        entities: [__dirname + '/**/*.entidad{.ts,.js}'], // Busca todas las entidades
+        synchronize: false, //Produccion, no autocrear tablas, true: desarrollo, crea tablas.
       }),
     }),
     AuthModule,
